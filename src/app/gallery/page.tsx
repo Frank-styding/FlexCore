@@ -27,6 +27,8 @@ export default function DashbaordGallery() {
     onDelete,
     onConfirmDelete,
     onConfirm,
+    onEdit,
+    onConfirmEdit,
   } = useDashboarGallery();
 
   return (
@@ -49,12 +51,13 @@ export default function DashbaordGallery() {
           {data.length === 0 ? (
             <p className="text-gray-500">No se encontraron dashboards.</p>
           ) : (
-            data.map((name, index) => (
+            data.map((dashboard, index) => (
               <DashboardCard
                 key={index}
-                name={name}
-                onClick={onClick}
-                onDelete={onDelete}
+                name={dashboard.name}
+                onClick={() => onClick(dashboard.id)}
+                onEdit={() => onEdit(dashboard.id)}
+                onDelete={() => onDelete(dashboard.id)}
               />
             ))
           )}
@@ -66,6 +69,15 @@ export default function DashbaordGallery() {
             fields={carFields}
             confirmName="Dashboard"
             onSubmit={onConfirm}
+          />
+
+          <FormModal
+            id="edit-dashboard"
+            title="Edit Dashboard"
+            schema={carSchema}
+            fields={carFields}
+            confirmName="Dashboard"
+            onSubmit={onConfirmEdit}
           />
 
           <ConfirmModal

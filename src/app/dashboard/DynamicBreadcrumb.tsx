@@ -28,7 +28,7 @@ export const DynamicBreadcrumb = () => {
           <SlashIcon />
         </BreadcrumbSeparator>
         <BreadcrumbItem>
-          <DropdownMenu>
+          {/*         <DropdownMenu>
             <DropdownMenuTrigger className="text-lg flex items-center gap-1 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5">
               Components
               <ChevronDownIcon className="size-4" />
@@ -40,7 +40,7 @@ export const DynamicBreadcrumb = () => {
               <DropdownMenuItem className="text-lg">Themes</DropdownMenuItem>
               <DropdownMenuItem className="text-lg">GitHub</DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </BreadcrumbItem>
         <BreadcrumbSeparator>
           <SlashIcon />

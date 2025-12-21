@@ -27,11 +27,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { memo, useState } from "react";
+import { IconPicker } from "./IconPicker";
 
 export type FieldConfig = {
   name: string;
   label: string;
-  type: "text" | "number" | "email" | "select" | "date";
+  type: "text" | "number" | "email" | "select" | "date" | "icon";
   placeholder?: string;
   options?: { label: string; value: string }[]; // Solo para selects
   className?: string; // Para controlar el ancho (col-span-1, etc.)
@@ -56,6 +57,14 @@ const FormDynamicInput = memo(
     fieldConfig: FieldConfig;
   }) => {
     switch (fieldConfig.type) {
+      case "icon":
+        return (
+          <IconPicker
+            value={field.value}
+            onChange={field.onChange}
+            placeholder={fieldConfig.placeholder}
+          />
+        );
       case "select":
         return (
           <Select onValueChange={field.onChange} value={field.value ?? ""}>

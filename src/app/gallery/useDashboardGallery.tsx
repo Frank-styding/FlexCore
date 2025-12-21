@@ -1,21 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useModals } from "@/components/providers/ModalProvider";
+import { useRouterSync } from "@/hooks/useRouterSync";
 import { useSearch } from "@/hooks/useSearch";
-import { addDashboard, deleteDashboard } from "@/lib/redux/features/dashboard";
+import {
+  addDashboard,
+  deleteDashboard,
+  editDashboard,
+} from "@/lib/redux/features/dashboardSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { useRouter } from "next/navigation";
 import { ChangeEvent } from "react";
-import { UseFormSetError } from "react-hook-form";
 
 export const useDashboarGallery = () => {
   const { openModal, closeModal, getModalData } = useModals();
-  const router = useRouter();
 
-  const names = useAppSelector((state) => state.dashboard.names);
+  const { navigate } = useRouterSync();
+
+  const dashboards = useAppSelector((state) => state.dashboard.dashboards);
+
   const dispatch = useAppDispatch();
 
-  const [data, value, setValue] = useSearch(names, (item, value) => {
-    return item.toLowerCase().includes(value.toLowerCase());
+  const [data, value, setValue] = useSearch(dashboards, (item, value) => {
+    return item.name.toLowerCase().includes(value.toLowerCase());
   });
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) =>
@@ -25,33 +31,33 @@ export const useDashboarGallery = () => {
     openModal("add-dashboard");
   };
 
-  const onConfirm = (
-    data: Record<string, string>,
-    setError: UseFormSetError<any>
-  ) => {
-    if (names.includes(data["name"])) {
-      setError("name", {
-        type: "manual",
-        message: "The dashboard already exist",
-      });
-      return;
-    }
+  const onConfirm = (data: Record<string, string>) => {
     closeModal("add-dashboard");
     setValue("");
-    dispatch(addDashboard(data["name"]));
+    dispatch(addDashboard({ name: data["name"] }));
   };
 
-  const onClick = (item: string) => {
-    router.push(`/dashboard?id=${item}`);
+  const onClick = (id: string) => {
+    navigate("/dashboard", { dashboardId: id });
   };
 
-  const onDelete = (item: string) => {
-    openModal("confirm", { item });
+  const onDelete = (id: string) => {
+    openModal("confirm", { id });
   };
 
   const onConfirmDelete = () => {
     const data = getModalData("confirm");
-    dispatch(deleteDashboard(data.item));
+    dispatch(deleteDashboard({ id: data.id }));
+  };
+
+  const onEdit = (id: string) => {
+    openModal("edit-dashboard", { id });
+  };
+
+  const onConfirmEdit = ({ name }: { name: string }) => {
+    const data = getModalData("edit-dashboard");
+    dispatch(editDashboard({ dashboardId: data.id, name }));
+    closeModal("edit-dashboard");
   };
 
   return {
@@ -63,5 +69,7 @@ export const useDashboarGallery = () => {
     onClick,
     onDelete,
     onConfirmDelete,
+    onEdit,
+    onConfirmEdit,
   };
 };
