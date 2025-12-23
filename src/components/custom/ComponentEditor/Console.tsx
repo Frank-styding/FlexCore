@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { BrushCleaning } from "lucide-react";
+import { v4 as uuid } from "uuid";
 
 export interface ILog {
   message: string;
@@ -8,6 +9,11 @@ export interface ILog {
 
 export const renderLog = (log: ILog, index: number) => {
   const color = "text-yellow-400";
+  let newData: any = log.data;
+  if (!Array.isArray(newData)) {
+    newData = [newData];
+  }
+  newData = newData.filter(Boolean);
 
   return (
     <div
@@ -15,13 +21,16 @@ export const renderLog = (log: ILog, index: number) => {
       className="mb-2 border-b border-border/50 pb-2 last:border-0"
     >
       <div className={`flex items-center gap-2 font-bold text-xs ${color}`}>
-        <span>{log.message}</span>
+        {log.message != "" && <span>{log.message}</span>}
       </div>
-      {log.data !== undefined && (
-        <pre className="mt-1 text-xs text-muted-foreground bg-muted/20 p-2 rounded overflow-x-auto max-h-40">
-          {JSON.stringify(log.data, null, 2)}
+      {newData.map((item) => (
+        <pre
+          key={uuid()}
+          className="mt-1 text-xs text-muted-foreground bg-muted/20 p-2 rounded overflow-x-auto max-h-40"
+        >
+          {JSON.stringify(item, null, 2)}
         </pre>
-      )}
+      ))}
     </div>
   );
 };

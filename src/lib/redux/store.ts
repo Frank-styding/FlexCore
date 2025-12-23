@@ -12,7 +12,8 @@ import {
 
 import storage from "redux-persist/lib/storage"; // Por defecto usa localStorage
 import storageSession from "redux-persist/lib/storage/session";
-import pathSlice from "./features/pathSlice";
+import scriptEditorSlice from "./features/ScriptEditorSlice";
+import pageSlice from "./features/pageSlice";
 
 /* // 1. Configuración de la persistencia
 const persistConfig = {
@@ -22,7 +23,7 @@ const persistConfig = {
 }; */
 
 // 1. Configuración para el slice que quieres que sea TEMPORAL (Session)
-const dashboardPersistConfig = {
+const pathPersistConfig = {
   key: "path",
   storage: storageSession,
 };
@@ -37,8 +38,10 @@ const rootPersistConfig = {
 
 // 2. Combinar reducers (necesario para persistReducer)
 const rootReducer = combineReducers({
-  dashboard: dashboardSlice,
-  path: persistReducer(dashboardPersistConfig, pathSlice),
+  dashboards: dashboardSlice,
+  pages: pageSlice,
+  /*   path: persistReducer(pathPersistConfig, pathSlice), */
+  scriptEditor: persistReducer(pathPersistConfig, scriptEditorSlice),
 });
 
 // 3. Crear el reducer persistido

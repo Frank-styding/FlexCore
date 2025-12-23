@@ -40,21 +40,25 @@ export function processSqlTemplate(
   });
 }
 
+const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+
 interface LogEntry {
   message: string;
   data?: any[]; // El '?' hace que la propiedad sea opcional
 }
 
-function executeSafeScript(
+async function executeSafeScript(
   scriptCode: string,
   context: Record<string, any>,
   blockedList: string[]
 ) {
   const capturedLogs: LogEntry[] = [];
   const pushLog = (prefix, args) => {
-    const entry: LogEntry = { message: prefix + args.join(" ") };
+    const entry: LogEntry = { message: "" };
     // Solo agregamos la propiedad 'data' si hay argumentos
+
     entry.data = args.filter((item) => typeof item != "string");
+    entry.message = args.filter((item) => typeof item == "string").join(",");
 
     if (entry.data?.length == 0) {
       entry.data = undefined;
@@ -82,8 +86,8 @@ function executeSafeScript(
       ...allowedValues,
       ...blockedList.map(() => undefined),
     ];
-    const fn = new Function(...allArgNames, scriptCode);
-    result = fn(...allArgValues);
+    const fn = new AsyncFunction(...allArgNames, scriptCode);
+    result = await fn(...allArgValues);
   } catch (e: any) {
     const logError = allowedContext.console
       ? allowedContext.console.error
@@ -94,13 +98,16 @@ function executeSafeScript(
   return { logs: capturedLogs, result };
 }
 
-export function runJs(jsScript: string, sqlScript: string) {
+export async function runScript(
+  jsScript: string,
+  sqlScript: string,
+  context: Record<string, any> = {}
+) {
   const queries = parseSqlScript(sqlScript);
 
   const blockedList = [
     "fetch",
     "XMLHttpRequest",
-    "setTimeout",
     "setInterval",
     "globalThis",
     "eval",
@@ -113,9 +120,9 @@ export function runJs(jsScript: string, sqlScript: string) {
     return ["hola", "hola"];
   };
 
-  const { logs, result } = executeSafeScript(
+  const { logs, result } = await executeSafeScript(
     jsScript,
-    { execQuery, QUERIES: queries },
+    { execQuery, QUERIES: queries, context },
     blockedList
   );
 

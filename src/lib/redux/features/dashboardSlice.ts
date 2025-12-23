@@ -1,115 +1,72 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
 // lib/features/dashboardSlice.ts
-import { IconName } from "@/components/custom/DynamicIcon";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { addPage, deletePage } from "./pageSlice";
 import { v4 as uuid } from "uuid";
-
-interface DashboadData {
-  id: string;
-  name: string;
-  pages: { icon: IconName; name: string; id: string }[];
-}
+import { Dashboard } from "@/types/types";
 
 interface DashboardState {
-  dashboards: DashboadData[];
+  byId: Record<string, Dashboard>;
+  activeDashboardId: string | null;
 }
 
 const initialState: DashboardState = {
-  dashboards: [],
+  byId: {},
+  activeDashboardId: null,
 };
 
 export const dashboardSlice = createSlice({
-  name: "dashboard",
+  name: "dashboards",
   initialState,
   reducers: {
-    // Usa PayloadAction para que TS sepa qué dato recibes
     addDashboard: (state, action: PayloadAction<{ name: string }>) => {
-      const { name } = action.payload;
       const id = uuid();
-      state.dashboards.push({
+      const { name } = action.payload;
+      state.byId[id] = {
         id,
         name,
-        pages: [],
-      });
+        pageIds: [],
+      };
     },
-
     deleteDashboard: (state, action: PayloadAction<{ id: string }>) => {
-      state.dashboards = state.dashboards.filter(
-        (item) => item.id !== action.payload.id
-      );
+      const { id } = action.payload;
+      delete state.byId[id];
     },
-
-    editDashboard: (
+    renameDashboard: (
       state,
-      action: PayloadAction<{ dashboardId: string; name: string }>
+      action: PayloadAction<{ id: string; name: string }>
     ) => {
-      const { dashboardId, name } = action.payload;
-      const idx = state.dashboards.findIndex((item) => item.id == dashboardId);
-      if (idx == -1) return;
-      state.dashboards[idx].name = name;
+      const { id, name } = action.payload;
+      state.byId[id].name = name;
     },
-
-    addPage: (
-      state,
-      action: PayloadAction<{
-        dashboardId: string;
-        page: { icon: IconName; name: string };
-      }>
-    ) => {
-      const { dashboardId, page } = action.payload;
-      const idx = state.dashboards.findIndex((item) => item.id == dashboardId);
-
-      if (idx == -1) return;
-
-      if (state.dashboards[idx].pages.some((item) => item.name == page.name))
-        return;
-
-      state.dashboards[idx].pages.push({ ...page, id: uuid() });
+    selectDashboard: (state, action: PayloadAction<{ id: string }>) => {
+      const { id } = action.payload;
+      state.activeDashboardId = id;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(addPage, (state, action) => {
+      const { dashboardId, id } = action.payload;
+      const dashboard = state.byId[dashboardId];
+      if (dashboard) {
+        dashboard.pageIds.push(id as string);
+      }
+    });
 
-    deletePage: (
-      state,
-      action: PayloadAction<{
-        dashboardId: string;
-        page: { id: string };
-      }>
-    ) => {
-      const { dashboardId, page } = action.payload;
-      const idx = state.dashboards.findIndex((item) => item.id == dashboardId);
-      if (idx == -1) return;
-      state.dashboards[idx].pages = state.dashboards[idx].pages.filter(
-        (name) => name.id != page.id
-      );
-    },
-    updatePage: (
-      state,
-      action: PayloadAction<{
-        dashboardId: string;
-        page: { id: string; name: string };
-      }>
-    ) => {
-      const { dashboardId, page } = action.payload;
-      const idx = state.dashboards.findIndex((item) => item.id == dashboardId);
-      if (idx == -1) return;
-      const idxPage = state.dashboards[idx].pages.findIndex(
-        (item) => item.id == page.id
-      );
-      if (idxPage == -1) return;
-
-      state.dashboards[idx].pages[idxPage].name = page.name;
-    },
+    builder.addCase(deletePage, (state, action) => {
+      const { dashboardId, id } = action.payload;
+      const dashboard = state.byId[dashboardId];
+      if (dashboard) {
+        dashboard.pageIds = dashboard.pageIds.filter((i) => i != id);
+      }
+    });
   },
 });
 
-// 1. Exporta las acciones para usarlas en tus componentes
 export const {
   addDashboard,
-  editDashboard,
+  renameDashboard,
   deleteDashboard,
-  addPage,
-  deletePage,
-  updatePage,
+  selectDashboard,
 } = dashboardSlice.actions;
 
-// 2. Exporta el reducer por defecto para el store
 export default dashboardSlice.reducer;

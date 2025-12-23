@@ -11,7 +11,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       <DashbaordSidebar />
-      <main className="grid h-screen w-full min-w-0 grid-rows-[60px_1fr_50px] overflow-hidden transition-[width] duration-300 ease-linear">
+      <main className="grid h-screen w-full min-w-0 grid-rows-[60px_1fr] overflow-hidden transition-[width] duration-300 ease-linear">
         <div className="grid w-full grid-cols-[40px_auto_40px] items-center  p-2">
           <SidebarTrigger classNameIcon="size-6" className="p-5" />
           <div />

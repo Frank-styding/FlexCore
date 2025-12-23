@@ -18,11 +18,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import {
+/* import {
   addPage,
   deletePage,
   updatePage,
-} from "@/lib/redux/features/dashboardSlice";
+} from "@/lib/redux/features/dashboardSlice"; */
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
   DropdownMenu,
@@ -35,6 +35,8 @@ import Link from "next/link";
 import z from "zod";
 import { ConfirmModal } from "@/components/custom/Modals/ConfirmModal";
 import { useRouterSync } from "@/hooks/useRouterSync";
+import { usePages } from "@/hooks/usePages";
+import { useRouter } from "next/navigation";
 
 const schema = z.object({
   name: z.string().min(4),
@@ -43,28 +45,15 @@ const schema = z.object({
 const fields: FieldConfig[] = [{ name: "name", label: "nombre", type: "text" }];
 
 export function DashbaordSidebar() {
-  const { data, navigate } = useRouterSync();
+  const router = useRouter();
 
-  const { dashboardId } = data;
-
-  const pages = useAppSelector(
-    (item) =>
-      item.dashboard.dashboards.find((item) => item.id == dashboardId)?.pages
-  );
-
-  const dispatch = useAppDispatch();
-
+  const { pages, addPage, renamePage, deletePage } = usePages();
   const { openModal, closeModal, getModalData } = useModals();
 
   const onAdd = () => openModal("add-page");
 
   const onConfirm = (data: Record<string, any>) => {
-    dispatch(
-      addPage({
-        dashboardId,
-        page: { name: data.name, icon: "LayoutDashboard" },
-      })
-    );
+    addPage(data.name, "LayoutDashboard");
     closeModal("add-page");
   };
 
@@ -74,12 +63,7 @@ export function DashbaordSidebar() {
 
   const onConfirmDelete = () => {
     const data = getModalData("confirm-delete-page");
-    dispatch(
-      deletePage({
-        dashboardId,
-        page: { id: data.id },
-      })
-    );
+    deletePage(data.id);
   };
   const onEdit = (data: Record<string, any>) => {
     openModal("edit-page", data);
@@ -87,17 +71,12 @@ export function DashbaordSidebar() {
 
   const onConfirmEdit = (newData: Record<string, string>) => {
     const data = getModalData("edit-page");
-    dispatch(
-      updatePage({
-        dashboardId,
-        page: { name: newData.name, id: data.id },
-      })
-    );
+    renamePage(data.id, newData.name);
     closeModal("edit-page");
   };
 
   const onClick = (pageId: string) => {
-    navigate("/dashboard/page", { dashboardId, pageId });
+    router.push("/dashboard/page");
   };
 
   return (

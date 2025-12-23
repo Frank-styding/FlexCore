@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { RootState } from "@/lib/redux/store";
+import { RootState } from "../store";
 
 interface RouteEntry {
   path: string;
@@ -87,11 +87,11 @@ export const pathSlice = createSlice({
 export const { pushRoute, syncExternalRoute } = pathSlice.actions;
 
 export const selectCurrentRouteData = (state: RootState) => {
-  const { history, currentIndex } = state.path;
+  /*   const { history, currentIndex } = state.path;
   if (currentIndex >= 0 && history[currentIndex]) {
     return history[currentIndex].data;
   }
-  return null;
+  return null; */
 };
 
 export default pathSlice.reducer;
