@@ -2,10 +2,10 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ReactNode } from "react";
 import { DashbaordSidebar } from "./DashboardSidebar";
-import { DynamicBreadcrumb } from "./DynamicBreadcrumb";
-import { Edit } from "lucide-react";
+/* import { DynamicBreadcrumb } from "./DynamicBreadcrumb"; */
+import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs } from "@/components/ui/Tabs";
+/* import { Tabs } from "@/components/ui/Tabs"; */
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
@@ -17,7 +17,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <div />
           <div className="flex h-full w-full items-center justify-center">
             <Button variant="ghost" size="icon" className="h-full w-full">
-              <Edit className="size-6" />
+              <Settings className="size-6" />
             </Button>
           </div>
         </div>

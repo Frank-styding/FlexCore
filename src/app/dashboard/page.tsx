@@ -1,4 +1,4 @@
-import { Tabs } from "@/components/ui/Tabs";
+import { Tabs } from "@/components/ui/BottomTabs";
 
 export default function Dashboard() {
   return (

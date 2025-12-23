@@ -55,11 +55,16 @@ export function Modal({
         </DialogTrigger>
       )}
 
-      <DialogContent className={"sm:max-w-106.25 " + className}>
-        <DialogHeader>
+      <DialogContent
+        className={"sm:max-w-106.25 " + className}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <DialogHeader className="">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <DialogDescription className="">{description}</DialogDescription>
+        {description && (
+          <DialogDescription className="">{description}</DialogDescription>
+        )}
         <div className="mt-4">{children}</div>
       </DialogContent>
     </Dialog>
