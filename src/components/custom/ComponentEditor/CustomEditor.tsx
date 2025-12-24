@@ -30,7 +30,7 @@ export const ScriptEditor = ({
   onChangeSql,
   sqlValue,
 }: CustomEditorProps) => {
-  const [isJs, setIsJs] = useState(false);
+  const [isJs, setIsJs] = useState(true);
   const [openConsole, setOpenConsole] = useState(!!disableConsole);
 
   const onTab = (name: string) => {

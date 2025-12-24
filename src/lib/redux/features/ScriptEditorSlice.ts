@@ -1,5 +1,8 @@
 import { runScript as runCode } from "@/lib/runScript/runScript";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+// Asegúrate de que la ruta sea correcta
+import { ComponentsBuilders } from "@/lib/ComponentBuilders/Builders";
+import { RootState } from "../store"; // Importa tu tipo RootState para evitar 'any'
 
 export interface ILog {
   message: string;
@@ -9,9 +12,9 @@ export interface ILog {
 interface ScriptState {
   sqlCode: string;
   jsCode: string;
-  context: Record<string, any>;
+  context: Record<string, any>; // Solo datos serializables (JSON)
   logs: ILog[];
-  result: any;
+  // result: any;  <-- ELIMINADO: Redux no debe guardar funciones
   onlyJs: boolean;
 }
 
@@ -19,22 +22,56 @@ const initialState: ScriptState = {
   sqlCode: "",
   jsCode: "",
   logs: [],
-  result: null,
   context: {},
   onlyJs: false,
 };
 
+// Función auxiliar para limpiar objetos antes de guardarlos en Redux Logs
+const sanitizeForRedux = (data: any): any => {
+  // 1. Si es función, devolvemos un string (Seguro para Redux)
+  if (typeof data === "function") return "[Function]";
+
+  // 2. Si es primitivo o null, lo devolvemos tal cual
+  if (data === null || typeof data !== "object") return data;
+
+  // 3. Si es Array, sanitizamos cada elemento
+  if (Array.isArray(data)) {
+    return data.map(sanitizeForRedux);
+  }
+
+  // 4. Si es Objeto, sanitizamos cada propiedad
+  const sanitized: any = {};
+  for (const key in data) {
+    // Evitamos referencias circulares simples o props muy internas si es necesario
+    sanitized[key] = sanitizeForRedux(data[key]);
+  }
+  return sanitized;
+};
 export const executeScript = createAsyncThunk(
   "scriptEditor/execute",
-  async (_, { getState }) => {
-    // Obtenemos el estado actual para sacar el código y el contexto
-    // Nota: Deberás ajustar 'any' al tipo de tu RootState si lo tienes definido
-    const state = (getState() as any).scriptEditor as ScriptState;
+  async (_, { getState, dispatch }) => {
+    const state = (getState() as RootState).scriptEditor;
 
-    // Ejecutamos la función asíncrona fuera del reducer
-    const response = await runCode(state.jsCode, state.sqlCode, state.context);
+    // INYECCIÓN DE DEPENDENCIAS (Runtime)
+    // Aquí combinamos los datos de Redux con tus funciones constructoras estáticas
+    const executionContext = {
+      ...state.context, // Datos (parentId, user_id, etc.)
+      ...ComponentsBuilders, // Funciones (Button, Input, UI...)
+    };
 
-    return response; // Lo que retornes aquí va al payload de 'fulfilled'
+    try {
+      const response = await runCode(
+        state.jsCode,
+        state.sqlCode,
+        executionContext
+      );
+
+      // Retornamos la respuesta completa (incluyendo funciones) al componente
+      return response;
+    } catch (error: any) {
+      // Si falla, lanzamos el error para que .rejected lo capture
+      throw error;
+    }
   }
 );
 
@@ -49,34 +86,41 @@ export const ScriptEditor = createSlice({
       state.sqlCode = action.payload;
     },
     setContext: (state, action: PayloadAction<any>) => {
-      state.context = action.payload;
+      // Merge shallow del contexto de datos
+      state.context = { ...state.context, ...action.payload };
     },
     clearConsole: (state) => {
       state.logs = [];
     },
   },
   extraReducers: (builder) => {
+    // CASO DE ÉXITO
     builder.addCase(executeScript.fulfilled, (state, action) => {
       const { logs: executionLogs, result } = action.payload;
-
+      // 1. Guardamos los logs internos del script (console.log dentro del código)
       const newLogs = executionLogs.map((l: any) => ({ step: "JS", ...l }));
       state.logs.push(...newLogs);
 
+      // 2. NUEVO: Agregamos el log del RETURN, pero sanitizado
       if (result !== undefined) {
-        state.result = result;
-        state.logs.push({ message: "Result:", data: result });
+        state.logs.push({
+          message: "Script finalizado. Return:",
+          // Aquí ocurre la magia: Limpiamos las funciones antes de guardar
+          data: sanitizeForRedux(result),
+        });
       }
     });
 
+    // CASO DE ERROR
     builder.addCase(executeScript.rejected, (state, action) => {
       state.logs.push({
-        message: "Error ejecutando script",
-        data: action.error,
+        message: "Error crítico ejecutando script",
+        data: action.error.message || action.error,
       });
     });
   },
 });
 
-export const { setJsCode, setSqlCode, clearConsole } = ScriptEditor.actions;
-
+export const { setJsCode, setSqlCode, clearConsole, setContext } =
+  ScriptEditor.actions;
 export default ScriptEditor.reducer;

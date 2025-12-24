@@ -122,7 +122,7 @@ export async function runScript(
 
   const { logs, result } = await executeSafeScript(
     jsScript,
-    { execQuery, QUERIES: queries, context },
+    { execQuery, QUERIES: queries, ...context },
     blockedList
   );
 

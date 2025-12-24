@@ -34,7 +34,8 @@ export const pageSlice = createSlice({
           ...page,
           id,
           dashboardId,
-          component: null,
+          sqlScript: "",
+          jsScript: "",
         };
       },
       prepare: ({
@@ -68,6 +69,23 @@ export const pageSlice = createSlice({
       const { id, name } = action.payload;
       state.byId[id].name = name;
     },
+
+    selectPage: (state, action: PayloadAction<{ id: string }>) => {
+      const { id } = action.payload;
+      state.activePage = id;
+    },
+    updatePageScript: (
+      state,
+      action: PayloadAction<{ id: string; js?: string; sql?: string }>
+    ) => {
+      const { id, js, sql } = action.payload;
+      const page = state.byId[id];
+
+      if (page) {
+        if (js !== undefined) page.jsScript = js; // Asumiendo que tu propiedad se llama jsScript
+        if (sql !== undefined) page.sqlScript = sql; // Asumiendo que tu propiedad se llama sqlScript
+      }
+    },
   },
   extraReducers: (builder) => {
     builder.addCase("dashboards/deleteDashboard", (state, action: any) => {
@@ -89,6 +107,7 @@ export const pageSlice = createSlice({
   },
 });
 
-export const { addPage, deletePage, renamePage } = pageSlice.actions;
+export const { addPage, deletePage, renamePage, selectPage, updatePageScript } =
+  pageSlice.actions;
 
 export default pageSlice.reducer;

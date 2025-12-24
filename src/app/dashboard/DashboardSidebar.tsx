@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FieldConfig } from "@/components/custom/DynamicForm";
 import { DynamicIcon, IconName } from "@/components/custom/DynamicIcon";
 import { FormModal } from "@/components/custom/Modals/FormModal";
@@ -18,12 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-/* import {
-  addPage,
-  deletePage,
-  updatePage,
-} from "@/lib/redux/features/dashboardSlice"; */
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -34,7 +28,6 @@ import { Settings, LayoutDashboard, Plus, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import z from "zod";
 import { ConfirmModal } from "@/components/custom/Modals/ConfirmModal";
-import { useRouterSync } from "@/hooks/useRouterSync";
 import { usePages } from "@/hooks/usePages";
 import { useRouter } from "next/navigation";
 
@@ -47,7 +40,7 @@ const fields: FieldConfig[] = [{ name: "name", label: "nombre", type: "text" }];
 export function DashbaordSidebar() {
   const router = useRouter();
 
-  const { pages, addPage, renamePage, deletePage } = usePages();
+  const { pages, addPage, renamePage, deletePage, selectPage } = usePages();
   const { openModal, closeModal, getModalData } = useModals();
 
   const onAdd = () => openModal("add-page");
@@ -76,6 +69,7 @@ export function DashbaordSidebar() {
   };
 
   const onClick = (pageId: string) => {
+    selectPage(pageId);
     router.push("/dashboard/page");
   };
 

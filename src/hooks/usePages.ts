@@ -3,15 +3,19 @@ import {
   addPage,
   deletePage,
   renamePage,
+  selectPage,
 } from "@/lib/redux/features/pageSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { Page } from "@/types/types";
-
+import { shallowEqual } from "react-redux"; // Importa esto
 export const usePages = () => {
-  const { dashboardsState, pagesState } = useAppSelector((state) => ({
-    dashboardsState: state.dashboards,
-    pagesState: state.pages,
-  }));
+  const { dashboardsState, pagesState } = useAppSelector(
+    (state) => ({
+      dashboardsState: state.dashboards,
+      pagesState: state.pages,
+    }),
+    shallowEqual
+  );
 
   const dispatch = useAppDispatch();
 
@@ -37,10 +41,15 @@ export const usePages = () => {
     dispatch(deletePage({ id, dashboardId }));
   };
 
+  const funcSelectPage = (id: string) => {
+    dispatch(selectPage({ id }));
+  };
+
   return {
     pages,
     addPage: funcAddPage,
     renamePage: funcRenamePage,
     deletePage: funcDeletePage,
+    selectPage: funcSelectPage,
   };
 };

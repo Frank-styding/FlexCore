@@ -2,17 +2,10 @@
 
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Tap } from "./Tap";
-import { Button } from "@/components/ui/button";
 import { TabContainer } from "./TabContainer";
-import { TabContent } from "./TabContent";
-import { Play } from "lucide-react";
-import { Console } from "./Console";
 import { ScriptEditor } from "./CustomEditor";
-import { Input } from "@/components/ui/input";
-import { useSearch } from "@/hooks/useSearch";
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
-import { parseSqlScript } from "@/lib/runScript/runScript";
 import { useConfigMonacoEditor } from "@/hooks/useConfigMonacoEditor";
 import {
   clearConsole,
@@ -20,19 +13,25 @@ import {
   setJsCode,
   setSqlCode,
 } from "@/lib/redux/features/ScriptEditorSlice";
+import { ComponentstypeDefinition } from "@/lib/ComponentBuilders/Builders";
+import { useCodeDefinitions } from "./useCodeDefinitions";
+import { DynamicComponent } from "@/components/DynamicComponents/DynamicComponent";
 
 interface ScriptEditorProps {
   initialSql?: string;
   initialScript?: string;
-  defaultContextVariables?: Record<string, any>;
+  onChangeJs?: (value: string) => void;
+  onChangeSql?: (value: string) => void;
 }
-const LIB_URI = "ts:filename/component-editor-context.d.ts";
+const LIB_BASE_URI = "ts:filename/context";
 
 export const ComponentEditor = ({
   initialSql = "SELECT * FROM items WHERE parent_id = {{parentId}}",
   initialScript = "// Tienes acceso a 'sqlData' y 'variables'\nconst processed = sqlData.map(item => item.name);\nreturn processed;",
+  onChangeJs,
+  onChangeSql,
 }: ScriptEditorProps) => {
-  const { jsCode, sqlCode, logs, result } = useAppSelector(
+  const { jsCode, sqlCode, logs } = useAppSelector(
     (state) => state.scriptEditor
   );
   const dispatch = useAppDispatch();
@@ -42,51 +41,49 @@ export const ComponentEditor = ({
     showPreview: true,
   });
 
+  const [liveComponent, setLiveComponent] = useState<any>(null);
+
   useEffect(() => {
     dispatch(setJsCode(initialScript));
     dispatch(setSqlCode(initialSql));
   }, []);
 
-  const { handleEditorDidMount } = useConfigMonacoEditor(
-    LIB_URI,
-    useCallback(() => {
-      const queries = parseSqlScript(sqlCode);
-      const queryKeys = Object.keys(queries);
+  const { globalDefinitions, sqlDefinitions } = useCodeDefinitions({
+    sqlCode,
+    initDefinitions: ComponentstypeDefinition,
+  });
 
-      const queriesObjProperties = queryKeys
-        .map((k) => `  ${JSON.stringify(k)}: string;`)
-        .join("\n");
+  const { handleEditorDidMount } = useConfigMonacoEditor({
+    baseUri: LIB_BASE_URI,
+    globalDefinitions: globalDefinitions,
+    sqlDefinitions: sqlDefinitions,
+  });
 
-      return `
-      /**
-       * Objeto que contiene tus consultas SQL.
-       * Úsalo como QUERIES.nombreDeConsulta
-       */
-      declare const QUERIES: {
-      ${queriesObjProperties}
-      };
+  const handleChangeJs = (v) => {
+    onChangeJs?.(v);
+    dispatch(setJsCode(v || ""));
+  };
+  const handleChangeSql = (v) => {
+    onChangeSql?.(v);
+    dispatch(setSqlCode(v || ""));
+  };
+  const onExecuteScript = async () => {
+    try {
+      // 1. Usamos .unwrap() para obtener el resultado limpio del Thunk
+      // Esto ignora la estructura de la acción de Redux y te da el return directo.
+      const result = await dispatch(executeScript()).unwrap();
 
-      /**
-       * Ejecuta una consulta SQL por su nombre.
-       * @param queryName El nombre exacto de la query (Autocompletado disponible)
-       */
-      // EL TRUCO: Usar keyof typeof QUERIES vincula la función al objeto que ya funciona
-      declare function execQuery(query:string,context?:Record<string,any>): any[];
+      console.log("Script Result:", result); // Para depurar
+      setLiveComponent(result.result);
 
-      /** Variables de contexto global */
-      declare const context: Record<string, any>;
-      declare const console: {
-        log(...args: any[]): void;
-        warn(...args: any[]): void;
-        error(...args: any[]): void;
-      };
-    `;
-    }, [sqlCode])
-  );
-
-  const onChangeJs = (v) => dispatch(setJsCode(v || ""));
-  const onChangeSql = (v) => dispatch(setSqlCode(v || ""));
-  const onExecuteScript = () => dispatch(executeScript());
+      // Opcional: Cambiar a la pestaña de vista previa automáticamente si hay éxito
+      // setUiState(prev => ({ ...prev, showPreview: true }));
+    } catch (error) {
+      console.error("Script failed:", error);
+      // Si falla, podrías querer limpiar el componente o mostrar un estado de error
+      setLiveComponent(null);
+    }
+  };
 
   const onTab = (name: string) => {
     if (name == "Script") {
@@ -122,15 +119,17 @@ export const ComponentEditor = ({
           <ScriptEditor
             onMount={handleEditorDidMount}
             sqlValue={sqlCode}
-            onChangeSql={onChangeSql}
+            onChangeSql={handleChangeSql}
             jsValue={jsCode}
-            onChangeJs={onChangeJs}
+            onChangeJs={handleChangeJs}
             logs={logs}
             onClean={() => dispatch(clearConsole())}
             onPlay={onExecuteScript}
           />
         </TabContainer>
-        <TabContainer show={uiState.showPreview}>HOla</TabContainer>
+        <TabContainer show={uiState.showPreview}>
+          <DynamicComponent data={liveComponent} />
+        </TabContainer>
       </div>
     </div>
   );

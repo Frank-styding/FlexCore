@@ -1,7 +1,11 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import dashboardSlice from "./features/dashboardSlice";
+import pageSlice from "./features/pageSlice";
+import scriptEditorSlice from "./features/ScriptEditorSlice";
+
 import {
   persistReducer,
+  persistStore, // Necesitarás esto en tu layout/provider
   FLUSH,
   REHYDRATE,
   PAUSE,
@@ -10,56 +14,51 @@ import {
   REGISTER,
 } from "redux-persist";
 
-import storage from "redux-persist/lib/storage"; // Por defecto usa localStorage
-import storageSession from "redux-persist/lib/storage/session";
-import scriptEditorSlice from "./features/ScriptEditorSlice";
-import pageSlice from "./features/pageSlice";
+import storage from "redux-persist/lib/storage"; // LocalStorage (Disco)
+import storageSession from "redux-persist/lib/storage/session"; // SessionStorage (Pestaña)
 
-/* // 1. Configuración de la persistencia
-const persistConfig = {
-  key: "root", // La clave principal en localStorage
-  storage, // El motor de almacenamiento (localStorage)
-  whitelist: ["dashboard"],
-}; */
-
-// 1. Configuración para el slice que quieres que sea TEMPORAL (Session)
-const pathPersistConfig = {
-  key: "path",
+// 1. Configuración para el editor (SessionStorage)
+// Esto es ideal: si cierra la pestaña, se limpia el editor, pero no el dashboard
+const editorPersistConfig = {
+  key: "scriptEditor",
   storage: storageSession,
+  // Opcional: blacklist: ['logs'] si no quieres guardar logs
 };
 
-// 2. Configuración Raíz por defecto (LocalStorage)
-const rootPersistConfig = {
-  key: "root",
-  storage: storage, // Por defecto todo va al disco duro
-  // ⚠️ CRUCIAL: Bloqueamos 'dashboard' aquí porque ya tiene su propia configuración abajo
-  blacklist: ["path"],
-};
-
-// 2. Combinar reducers (necesario para persistReducer)
+// 2. Reducer Raíz Combinado
 const rootReducer = combineReducers({
   dashboards: dashboardSlice,
   pages: pageSlice,
-  /*   path: persistReducer(pathPersistConfig, pathSlice), */
-  scriptEditor: persistReducer(pathPersistConfig, scriptEditorSlice),
+  // Aplicamos persistencia específica al editor
+  scriptEditor: persistReducer(editorPersistConfig, scriptEditorSlice),
 });
 
-// 3. Crear el reducer persistido
+// 3. Configuración Raíz (LocalStorage)
+const rootPersistConfig = {
+  key: "root",
+  storage: storage,
+  // IMPORTANTE: Bloqueamos 'scriptEditor' aquí porque ya lo configuramos arriba
+  // Si no lo haces, storage (local) sobrescribirá storageSession
+  blacklist: ["scriptEditor"],
+};
+
+// 4. Reducer Final Persistido
 const persistedReducer = persistReducer(rootPersistConfig, rootReducer);
 
 export const makeStore = () => {
   return configureStore({
-    reducer: persistedReducer, // Usamos el reducer persistido
-    // 4. Configurar middleware para ignorar advertencias de serialización de redux-persist
+    reducer: persistedReducer,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: {
+          // Ignoramos acciones de redux-persist para evitar warnings
           ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
         },
       }),
   });
 };
 
+// Exportar tipos
 export type AppStore = ReturnType<typeof makeStore>;
 export type RootState = ReturnType<AppStore["getState"]>;
 export type AppDispatch = AppStore["dispatch"];

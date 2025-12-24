@@ -2,10 +2,8 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ReactNode } from "react";
 import { DashbaordSidebar } from "./DashboardSidebar";
-/* import { DynamicBreadcrumb } from "./DynamicBreadcrumb"; */
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-/* import { Tabs } from "@/components/ui/Tabs"; */
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
