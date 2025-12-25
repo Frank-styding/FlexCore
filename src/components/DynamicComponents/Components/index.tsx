@@ -1,5 +1,9 @@
-import { Button } from "./Button";
+import { DynamicButton } from "./Button";
+import { DynamicConfirmModal } from "./ConfirmModal";
+import { DynamicLayout } from "./Layout";
 
 export const COMPONENTS = {
-  Button,
+  Button: DynamicButton,
+  ConfirmModal: DynamicConfirmModal,
+  Layout: DynamicLayout,
 };

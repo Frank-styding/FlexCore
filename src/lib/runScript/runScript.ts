@@ -1,3 +1,5 @@
+import { ComponentsBuilders } from "../ComponentBuilders/Builders";
+
 export function parseSqlScript(text) {
   const regex = /--\[(.*?)\]([\s\S]*?)(?=(?:--\[|$))/g;
   const queries = {};
@@ -53,18 +55,28 @@ async function executeSafeScript(
   blockedList: string[]
 ) {
   const capturedLogs: LogEntry[] = [];
-  const pushLog = (prefix, args) => {
-    const entry: LogEntry = { message: "" };
-    // Solo agregamos la propiedad 'data' si hay argumentos
+  const realConsole = console;
 
+  const pushLog = (prefix, args) => {
+    // 1. Lógica existente: Guardar para tu UI
+    const entry: LogEntry = { message: "" };
     entry.data = args.filter((item) => typeof item != "string");
     entry.message = args.filter((item) => typeof item == "string").join(",");
 
     if (entry.data?.length == 0) {
       entry.data = undefined;
     }
-
     capturedLogs.push(entry);
+
+    // 2. NUEVA LÓGICA: Imprimir en la consola real (DevTools)
+    // Esto permite que los eventos onClick muestren output en el navegador
+    if (prefix === "[ERROR] ") {
+      realConsole.error(...args);
+    } else if (prefix === "[WARN] ") {
+      realConsole.warn(...args);
+    } else {
+      realConsole.log(...args);
+    }
   };
 
   let result;
@@ -101,7 +113,7 @@ async function executeSafeScript(
 export async function runScript(
   jsScript: string,
   sqlScript: string,
-  context: Record<string, any> = {}
+  scriptContext?: Record<string, any>
 ) {
   const queries = parseSqlScript(sqlScript);
 
@@ -114,15 +126,22 @@ export async function runScript(
     "Function",
   ];
 
-  const execQuery = (query: string, context: Record<string, string> = {}) => {
+  const handleExecQuery = async (
+    query: string,
+    context: Record<string, string> = {}
+  ) => {
     query = processSqlTemplate(query, context);
-    console.log(query, context);
-    return ["hola", "hola"];
+    return scriptContext?.execQuery ? await scriptContext.execQuery(query) : [];
   };
 
   const { logs, result } = await executeSafeScript(
     jsScript,
-    { execQuery, QUERIES: queries, ...context },
+    {
+      execQuery: handleExecQuery,
+      QUERIES: queries,
+      ...scriptContext,
+      ...ComponentsBuilders,
+    },
     blockedList
   );
 

@@ -50,6 +50,9 @@ export const ScriptEditor = ({
     scrollBeyondLastLine: false,
   };
 
+  const handleOnPlay = () => {
+    onPlay?.();
+  };
   return (
     <div className="h-full rounded-lg overflow-hidden grid grid-rows-[45px_1fr]">
       <div className="w-full bg-accent flex gap-3 items-center px-3">
@@ -84,7 +87,7 @@ export const ScriptEditor = ({
             <Button
               className="h-8 transition-none duration-0"
               variant="outline"
-              onClick={onPlay}
+              onClick={handleOnPlay}
             >
               <Play />
             </Button>

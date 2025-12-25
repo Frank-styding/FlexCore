@@ -12,7 +12,6 @@ export interface ILog {
 interface ScriptState {
   sqlCode: string;
   jsCode: string;
-  context: Record<string, any>; // Solo datos serializables (JSON)
   logs: ILog[];
   // result: any;  <-- ELIMINADO: Redux no debe guardar funciones
   onlyJs: boolean;
@@ -22,12 +21,11 @@ const initialState: ScriptState = {
   sqlCode: "",
   jsCode: "",
   logs: [],
-  context: {},
   onlyJs: false,
 };
 
 // Función auxiliar para limpiar objetos antes de guardarlos en Redux Logs
-const sanitizeForRedux = (data: any): any => {
+/* const sanitizeForRedux = (data: any): any => {
   // 1. Si es función, devolvemos un string (Seguro para Redux)
   if (typeof data === "function") return "[Function]";
 
@@ -46,8 +44,8 @@ const sanitizeForRedux = (data: any): any => {
     sanitized[key] = sanitizeForRedux(data[key]);
   }
   return sanitized;
-};
-export const executeScript = createAsyncThunk(
+}; */
+/* export const executeScript = createAsyncThunk(
   "scriptEditor/execute",
   async (_, { getState, dispatch }) => {
     const state = (getState() as RootState).scriptEditor;
@@ -74,7 +72,7 @@ export const executeScript = createAsyncThunk(
     }
   }
 );
-
+ */
 export const ScriptEditor = createSlice({
   name: "scriptEditor",
   initialState,
@@ -85,15 +83,28 @@ export const ScriptEditor = createSlice({
     setSqlCode: (state, action: PayloadAction<string>) => {
       state.sqlCode = action.payload;
     },
-    setContext: (state, action: PayloadAction<any>) => {
-      // Merge shallow del contexto de datos
-      state.context = { ...state.context, ...action.payload };
-    },
     clearConsole: (state) => {
       state.logs = [];
     },
+    addExecutionLogs: (
+      state,
+      action: PayloadAction<{ logs: ILog[]; result?: any }>
+    ) => {
+      const { logs, result } = action.payload;
+      // 1. Logs internos del script
+      const newLogs = logs.map((l: any) => ({ step: "JS", ...l }));
+      state.logs.push(...newLogs);
+
+      // 2. Log del return final (Sanitizado)
+      if (result !== undefined) {
+        state.logs.push({
+          message: "Script finalizado. Return:",
+          data: result, // Asumimos que ya viene sanitizado desde el componente
+        });
+      }
+    },
   },
-  extraReducers: (builder) => {
+  /*  extraReducers: (builder) => {
     // CASO DE ÉXITO
     builder.addCase(executeScript.fulfilled, (state, action) => {
       const { logs: executionLogs, result } = action.payload;
@@ -118,9 +129,9 @@ export const ScriptEditor = createSlice({
         data: action.error.message || action.error,
       });
     });
-  },
+  }, */
 });
 
-export const { setJsCode, setSqlCode, clearConsole, setContext } =
+export const { setJsCode, setSqlCode, clearConsole, addExecutionLogs } =
   ScriptEditor.actions;
 export default ScriptEditor.reducer;

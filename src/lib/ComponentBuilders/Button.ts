@@ -1,27 +1,41 @@
-import { IconName } from "@/components/custom/DynamicIcon";
-import { BuildFuncs, Component, Events } from "./Component";
+import { BuildFuncs, Component, ComponentEvent } from "./Component";
 
-type ButtonConfig = { className?: string; label?: string; icon?: IconName };
+type ButtonConfig = {
+  className?: string;
+  variant?: "outline" | "default";
+  label?: string;
+  icon: string;
+};
+
 type Button = (data: {
+  id: string;
   config: ButtonConfig;
-  events: Events;
+  onClick: ComponentEvent;
   buildFuncs: BuildFuncs;
 }) => Component;
 
-export const Button: Button = ({ config, events, buildFuncs }) => {
+export const Button: Button = ({ id, config, onClick, buildFuncs }) => {
   return {
+    id,
     type: "Button",
     config,
-    events,
+    events: { onClick },
     buildFuncs,
   };
 };
 
 export const ButtonTypeDefinition = `
-type ButtonConfig = { className?: string; label?: string; icon?: IconName };
+type ButtonConfig = {
+  className?: string;
+  variant?: "outline" | "default";
+  label?: string;
+  icon: string;
+};
+
 type Button = (data: {
+  id: string;
   config: ButtonConfig;
-  events: Events;
+  onClick: ComponentEvent;
   buildFuncs: BuildFuncs;
 }) => Component;
 

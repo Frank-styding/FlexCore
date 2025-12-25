@@ -19,6 +19,8 @@ export interface ModalProps {
   description?: string;
   className?: string;
   children?: ReactNode; // Aquí inyectaremos los inputs
+  disableOutside?: boolean;
+  disableEscape?: boolean;
 }
 
 export function Modal({
@@ -28,6 +30,8 @@ export function Modal({
   id,
   description,
   className,
+  disableEscape,
+  disableOutside,
 }: ModalProps) {
   const { isModalOpen, closeModal, registerModal, unregisterModal } =
     useModals();
@@ -57,7 +61,12 @@ export function Modal({
 
       <DialogContent
         className={"sm:max-w-106.25 " + className}
-        onEscapeKeyDown={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => {
+          if (disableEscape) e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          if (disableOutside) e.preventDefault();
+        }}
       >
         <DialogHeader className="">
           <DialogTitle>{title}</DialogTitle>

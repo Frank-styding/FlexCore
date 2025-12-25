@@ -52,7 +52,15 @@ export const makeStore = () => {
       getDefaultMiddleware({
         serializableCheck: {
           // Ignoramos acciones de redux-persist para evitar warnings
-          ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+          ignoredActions: [
+            FLUSH,
+            REHYDRATE,
+            PAUSE,
+            PERSIST,
+            PURGE,
+            REGISTER,
+            "scriptEditor/execute/fulfilled",
+          ],
         },
       }),
   });

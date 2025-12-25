@@ -1,17 +1,30 @@
+import { ActionsTypeDefinitions } from "@/hooks/useScriptActions";
+import { ComponentsTypeDefinition } from "@/lib/ComponentBuilders/Builders";
+import { ComponentTypeDefinition } from "@/lib/ComponentBuilders/Component";
 import { parseSqlScript } from "@/lib/runScript/runScript";
 import { useMemo } from "react";
 
-export const useCodeDefinitions = ({
-  sqlCode,
-  initDefinitions,
-}: {
-  sqlCode: string;
-  initDefinitions: string;
-}) => {
+export const useCodeDefinitions = ({ sqlCode }: { sqlCode: string }) => {
   const globalDefinitions = useMemo(() => {
     return `
       /** Ejecuta una consulta SQL */
-      declare function execQuery(query: string, context?: Record<string,any>): Promise<any[]>;
+
+      type Context = Record<string, any>;
+      type ComponentEvent = (e: any, context: Context) => void;
+      type Events = Record<string, ComponentEvent>;
+      interface BuildFuncs {
+         init?: () => Context;
+         update?: () => Context;
+      }
+
+      interface Component {
+        id:string;
+        type: string;
+        config: Record<string, any>;
+        events: Events;
+        buildFuncs: BuildFuncs;
+        subComponents?: Component[] | Component;
+      }
       declare const console: {
         log(...args: any[]): void;
         warn(...args: any[]): void;
@@ -19,7 +32,9 @@ export const useCodeDefinitions = ({
       };
       
       declare const context: Record<string, any>;
-    ${initDefinitions}
+      ${ActionsTypeDefinitions}
+      ${ComponentTypeDefinition}
+      ${ComponentsTypeDefinition}
     `;
   }, []); // Array vacío: Solo se calcula una vez
 
