@@ -23,8 +23,10 @@ export const dashboardSlice = createSlice({
       const { name } = action.payload;
       state.byId[id] = {
         id,
+        configScript: "",
         name,
         pageIds: [],
+        config: {},
       };
     },
     deleteDashboard: (state, action: PayloadAction<{ id: string }>) => {
@@ -41,6 +43,26 @@ export const dashboardSlice = createSlice({
     selectDashboard: (state, action: PayloadAction<{ id: string }>) => {
       const { id } = action.payload;
       state.activeDashboardId = id;
+    },
+    setConfig: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        config: Record<string, any>;
+      }>
+    ) => {
+      const { id, config } = action.payload;
+      state.byId[id].config = config;
+    },
+    setConfigScript: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        script: string;
+      }>
+    ) => {
+      const { id, script } = action.payload;
+      state.byId[id].configScript = script;
     },
   },
   extraReducers: (builder) => {
@@ -66,7 +88,9 @@ export const {
   addDashboard,
   renameDashboard,
   deleteDashboard,
+  setConfig,
   selectDashboard,
+  setConfigScript,
 } = dashboardSlice.actions;
 
 export default dashboardSlice.reducer;

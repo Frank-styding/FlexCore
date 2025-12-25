@@ -1,19 +1,23 @@
-import { Component } from "./Component";
+import { Component, Context } from "./Component";
 
 type LayoutConfig = {
   className?: string;
 };
 
 type Layout = (
-  data: { id: string; config: LayoutConfig },
+  data: { id: string; config: LayoutConfig; context?: Context },
   subComponents: Component[]
 ) => Component;
 
-export const Layout: Layout = ({ id, config }, subComponents: Component[]) => {
+export const Layout: Layout = (
+  { id, config, context },
+  subComponents: Component[]
+) => {
   return {
     id,
     type: "Layout",
     config,
+    context,
     events: {},
     buildFuncs: {},
     subComponents,
@@ -26,7 +30,7 @@ type LayoutConfig = {
 };
 
 type Layout = (
-  data: { id: string; config: LayoutConfig },
+  data: { id: string; config: LayoutConfig, context?:Context },
   subComponents: Component[]
 ) => Component;
 

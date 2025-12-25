@@ -9,12 +9,15 @@ import { useScriptActions } from "@/hooks/useScriptActions";
 import { useEffect, useState } from "react";
 import { runScript } from "@/lib/runScript/runScript";
 import { DynamicComponent } from "@/components/DynamicComponents/DynamicComponent";
+import { Component } from "@/lib/ComponentBuilders/Component";
 
 export default function Page() {
   const { openModal } = useModals();
   const { sqlCode, jsCode } = usePageEditor();
   const scriptContext = useScriptActions();
-  const [componentStruct, setComponentStruct] = useState(null);
+  const [componentStruct, setComponentStruct] = useState<Component | null>(
+    null
+  );
 
   const onClick = () => {
     openModal("create-component-1");
@@ -39,7 +42,10 @@ export default function Page() {
   return (
     <>
       {componentStruct ? (
-        <DynamicComponent data={componentStruct} />
+        <DynamicComponent
+          data={componentStruct}
+          context={componentStruct.context}
+        />
       ) : (
         <>
           <div className="w-full min-h-full flex justify-center items-center">

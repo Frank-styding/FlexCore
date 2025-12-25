@@ -13,4 +13,6 @@ export interface Dashboard {
   id: string;
   name: string;
   pageIds: string[];
+  config: Record<string, any>;
+  configScript: string;
 }

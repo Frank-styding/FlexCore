@@ -1,4 +1,4 @@
-import { BuildFuncs, Component, ComponentEvent } from "./Component";
+import { BuildFuncs, Component, ComponentEvent, Context } from "./Component";
 
 type ConfirmModalConfig = {
   title?: string;
@@ -12,6 +12,7 @@ type ConfirmModal = (data: {
   onConfirm: ComponentEvent;
   onCancel: ComponentEvent;
   buildFuncs: BuildFuncs;
+  context?: Context;
 }) => Component;
 
 export const ConfirmModal: ConfirmModal = ({
@@ -44,6 +45,7 @@ type ConfirmModal = (data: {
   onConfirm: ComponentEvent;
   onCancel: ComponentEvent;
   buildFuncs: BuildFuncs;
+  context?:Context;
 }) => Component;
 
 declare const ConfirmModal:ConfirmModal;

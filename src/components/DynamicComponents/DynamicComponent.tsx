@@ -2,13 +2,9 @@ import { Component, Context } from "@/lib/ComponentBuilders/Component";
 import { COMPONENTS } from "./Components";
 import { ReactNode } from "react";
 
-const defaultContext: Context = {
-  comp: {},
-};
-
 export const DynamicComponent = ({
   data,
-  context = defaultContext,
+  context,
 }: {
   data?: Component;
   context?: Context;

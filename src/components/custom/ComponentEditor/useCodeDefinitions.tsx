@@ -4,7 +4,7 @@ import { ComponentTypeDefinition } from "@/lib/ComponentBuilders/Component";
 import { parseSqlScript } from "@/lib/runScript/runScript";
 import { useMemo } from "react";
 
-export const useCodeDefinitions = ({ sqlCode }: { sqlCode: string }) => {
+export const useCodeDefinitions = ({ sqlCode }: { sqlCode?: string }) => {
   const globalDefinitions = useMemo(() => {
     return `
       /** Ejecuta una consulta SQL */
@@ -39,6 +39,7 @@ export const useCodeDefinitions = ({ sqlCode }: { sqlCode: string }) => {
   }, []); // Array vacío: Solo se calcula una vez
 
   const sqlDefinitions = useMemo(() => {
+    if (!sqlCode) return "";
     const queries = parseSqlScript(sqlCode);
     const queryKeys = Object.keys(queries);
 

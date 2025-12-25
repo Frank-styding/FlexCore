@@ -16,6 +16,7 @@ export interface Component {
   config: Record<string, any>;
   events: Events;
   buildFuncs: BuildFuncs;
+  context?: Context;
   subComponents?: Component[] | Component;
 }
 
@@ -36,6 +37,7 @@ interface Component {
   id: string;
   config: Record<string, any>;
   events: Events;
+  context?: Context;
   buildFuncs: BuildFuncs;
   subComponents?: Component[] | Component;
 }

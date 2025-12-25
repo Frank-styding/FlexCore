@@ -81,13 +81,13 @@ async function executeSafeScript(
 
   let result;
   const allowedContext = {
+    Math: Math,
+    JSON: JSON,
     console: {
       log: (...args) => pushLog("", args),
       warn: (...args) => pushLog("[WARN] ", args),
       error: (...args) => pushLog("[ERROR] ", args),
     },
-    Math: Math,
-    JSON: JSON,
     ...context,
   };
   try {
@@ -139,8 +139,8 @@ export async function runScript(
     {
       execQuery: handleExecQuery,
       QUERIES: queries,
-      ...scriptContext,
       ...ComponentsBuilders,
+      ...scriptContext,
     },
     blockedList
   );

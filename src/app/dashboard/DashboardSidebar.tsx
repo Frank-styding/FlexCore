@@ -30,6 +30,9 @@ import z from "zod";
 import { ConfirmModal } from "@/components/custom/Modals/ConfirmModal";
 import { usePages } from "@/hooks/usePages";
 import { useRouter } from "next/navigation";
+import { Modal } from "@/components/custom/Modal";
+import { ScriptEditor } from "@/components/custom/ComponentEditor/ScriptEditor";
+import { ConfigConnectionModal } from "./ConfigConnectionModal";
 
 const schema = z.object({
   name: z.string().min(4),
@@ -73,6 +76,9 @@ export function DashbaordSidebar() {
     router.push("/dashboard/page");
   };
 
+  const onSettings = () => {
+    openModal("config-connection-modal");
+  };
   return (
     <>
       <Sidebar className="select-none">
@@ -135,7 +141,7 @@ export function DashbaordSidebar() {
         </SidebarContent>
 
         <SidebarFooter>
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" onClick={onSettings}>
             <div className="">
               <Settings className="w-10 h-10 " />
               <span>Settings</span>
@@ -163,8 +169,13 @@ export function DashbaordSidebar() {
       <ConfirmModal
         onConfirm={onConfirmDelete}
         id="confirm-delete-page"
-        description="¿ Esta seguro ?"
+        description="¿ Are you sure ?"
         title="Confirm delete"
+      />
+      <ConfigConnectionModal
+        id="config-connection-modal"
+        title="Config connection"
+        description="set connection config"
       />
     </>
   );

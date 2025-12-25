@@ -1,4 +1,4 @@
-import { BuildFuncs, Component, ComponentEvent } from "./Component";
+import { BuildFuncs, Component, ComponentEvent, Context } from "./Component";
 
 type ButtonConfig = {
   className?: string;
@@ -12,12 +12,20 @@ type Button = (data: {
   config: ButtonConfig;
   onClick: ComponentEvent;
   buildFuncs: BuildFuncs;
+  context?: Context;
 }) => Component;
 
-export const Button: Button = ({ id, config, onClick, buildFuncs }) => {
+export const Button: Button = ({
+  id,
+  config,
+  onClick,
+  buildFuncs,
+  context,
+}) => {
   return {
     id,
     type: "Button",
+    context,
     config,
     events: { onClick },
     buildFuncs,
@@ -37,6 +45,7 @@ type Button = (data: {
   config: ButtonConfig;
   onClick: ComponentEvent;
   buildFuncs: BuildFuncs;
+  context?: Context;
 }) => Component;
 
 declare const Button:Button;

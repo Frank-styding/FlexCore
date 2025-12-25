@@ -2,12 +2,12 @@ import { useModals } from "@/components/providers/ModalProvider";
 import { Modal, ModalProps } from "../Modal";
 import { Button } from "@/components/ui/button";
 
-type confirmModalProps = ModalProps & {
+type ConfirmModalProps = ModalProps & {
   onConfirm?: () => void;
   onCancel?: () => void;
 };
 
-export const ConfirmModal = (props: confirmModalProps) => {
+export const ConfirmModal = (props: ConfirmModalProps) => {
   const { closeModal } = useModals();
   const onCancel = () => {
     closeModal(props.id);

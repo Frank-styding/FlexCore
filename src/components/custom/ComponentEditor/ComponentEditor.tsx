@@ -27,7 +27,6 @@ interface ScriptEditorProps {
   onChangeSql?: (value: string) => void;
   onSave?: () => void;
 }
-const LIB_BASE_URI = "ts:filename/context";
 const sanitizeForRedux = (data: any): any => {
   if (typeof data === "function") return "[Function]";
   if (data === null || typeof data !== "object") return data;
@@ -54,41 +53,16 @@ export const ComponentEditor = ({
     showEditor: true,
     showPreview: true,
   });
+
   const [liveComponent, setLiveComponent] = useState<any>(null);
-  const { globalDefinitions, sqlDefinitions } = useCodeDefinitions({ sqlCode });
-  const { handleEditorDidMount } = useConfigMonacoEditor({
-    baseUri: LIB_BASE_URI,
-    globalDefinitions: globalDefinitions,
-    sqlDefinitions: sqlDefinitions,
-  });
+
   const scriptContext = useScriptActions();
+  const { globalDefinitions, sqlDefinitions } = useCodeDefinitions({ sqlCode });
 
   useEffect(() => {
     dispatch(setJsCode(initialScript));
     dispatch(setSqlCode(initialSql));
   }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Verifica si se presiona Ctrl (Win/Linux) o Meta (Mac) junto con la tecla 's'
-      if ((e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S")) {
-        e.preventDefault(); // 🛑 Importante: Bloquea el "Guardar página" del navegador
-
-        if (onSave) {
-          console.log("Guardando vía atajo de teclado...");
-          onSave();
-        }
-      }
-    };
-
-    // Agregamos el listener a la ventana global
-    window.addEventListener("keydown", handleKeyDown);
-
-    // Limpiamos el listener cuando el componente se desmonta
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [onSave]); // Se vuelve a crear si la función onSave cambia
 
   const handleChangeJs = (v) => {
     onChangeJs?.(v);
@@ -169,7 +143,6 @@ export const ComponentEditor = ({
       <div className="w-full h-full flex min-h-0 overflow-hidden gap-4">
         <TabContainer show={uiState.showEditor}>
           <ScriptEditor
-            onMount={handleEditorDidMount}
             sqlValue={sqlCode}
             onChangeSql={handleChangeSql}
             jsValue={jsCode}
@@ -177,10 +150,16 @@ export const ComponentEditor = ({
             logs={logs}
             onClean={() => dispatch(clearConsole())}
             onPlay={onExecuteScript}
+            onSave={onSave}
+            globalDefinitions={globalDefinitions}
+            sqlDefinitions={sqlDefinitions}
           />
         </TabContainer>
         <TabContainer show={uiState.showPreview}>
-          <DynamicComponent data={liveComponent} />
+          <DynamicComponent
+            data={liveComponent}
+            context={liveComponent?.context}
+          />
         </TabContainer>
       </div>
     </div>
