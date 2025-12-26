@@ -1,34 +1,16 @@
 import { useModals } from "@/components/providers/ModalProvider";
-import { useDashboards } from "./useDashboards";
 import { Context } from "@/lib/ComponentBuilders/Component";
-import { useAppDispatch } from "@/lib/redux/hooks";
-import { addExecutionLogs } from "@/lib/redux/features/ScriptEditorSlice";
 import { v4 as uuid } from "uuid";
+import { useScriptEditor } from "./useScriptEditor";
+import { LogEntry } from "@/lib/runScript/runScript";
 
 export const useScriptActions = () => {
   const { openModal, closeModal } = useModals();
-  const { setConfig } = useDashboards();
+  const { addExecutionLogs } = useScriptEditor();
 
   const context: Context = { comp: {} };
-  const dispatch = useAppDispatch();
   const execQuery = (query: string) => {
-    console.log(query);
     return ["hola"];
-  };
-
-  const ConectionConfig = (config: {
-    url: string;
-    key: string;
-    type: string;
-  }) => {
-    dispatch(
-      addExecutionLogs({
-        logs: [
-          { message: "System: Connected to " + config.url, data: [config] },
-        ],
-      })
-    );
-    setConfig(config);
   };
 
   const handleOpenModal = (id: string) => {
@@ -39,21 +21,35 @@ export const useScriptActions = () => {
     closeModal(id);
   };
 
+  const Editor = {
+    log: (...args: any) => {
+      /*       if (isEditingBy) {
+        const entry: LogEntry = { message: "" };
+        entry.data = args.filter((item) => typeof item != "string");
+        entry.message = args
+          .filter((item) => typeof item == "string")
+          .join(",");
+
+        addExecutionLogs([entry]);
+      } */
+    },
+  };
+
   return {
     execQuery,
     openModal: handleOpenModal,
     closeModal: handleCloseModal,
-    ConectionConfig,
     uuid,
+    Editor,
     context,
   };
 };
 
-export const ActionsTypeDefinitions = `
+export const ActionsTypes = `
 declare function execQuery(query: string, context?: Record<string,any>): Promise<any[]>;
 declare function openModal(id:string):void;
 declare function closeModal(id:string):void;
 declare const context:Context;
-declare function ConectionConfig(config:{url:string,key:string,type:string}):void;
 declare function uuid():string;
+declare const Editor:{ log:(value:any)=> void }
 `;

@@ -31,7 +31,7 @@ export const ConfirmModal: ConfirmModal = ({
   };
 };
 
-export const ConfirmModalTypeDefinition = `
+export const ConfirmModalType = `
 
 type ConfirmModalConfig = {
   title?: string;

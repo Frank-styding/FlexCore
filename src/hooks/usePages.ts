@@ -1,55 +1,56 @@
 import { IconName } from "@/components/custom/DynamicIcon";
 import {
-  addPage,
-  deletePage,
-  renamePage,
-  selectPage,
+  addPageRemote,
+  deletePageRemote,
+  updatePageRemote,
 } from "@/lib/redux/features/pageSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { Page } from "@/types/types";
-import { shallowEqual } from "react-redux"; // Importa esto
-export const usePages = () => {
-  const { dashboardsState, pagesState } = useAppSelector(
-    (state) => ({
-      dashboardsState: state.dashboards,
-      pagesState: state.pages,
-    }),
-    shallowEqual
-  );
+import { useUser } from "@/hooks/useUser"; // <--- 1. Importamos el hook de usuario
+export const usePages = (dashbaordId?: string) => {
+  // 2. Obtenemos el usuario autenticado
+  const { user } = useUser();
+
+  const pagesMap = useAppSelector((state) => state.pages.byId);
 
   const dispatch = useAppDispatch();
 
-  const dashboardId = dashboardsState.activeDashboardId as string;
-
+  /*   const activeDashboardId = data ? data["dashboardId"] : null;
+   */
   let pages: Page[] = [];
-
-  if (dashboardId && dashboardsState.byId[dashboardId]) {
-    pages = dashboardsState.byId[dashboardId].pageIds
-      .map((id) => pagesState.byId[id])
-      .filter((page) => page !== undefined); // Filtramos los que sean undefined
+  if (dashbaordId) {
+    pages = Object.values(pagesMap).filter(
+      (page) => page.dashboardId === dashbaordId
+    );
   }
-
-  const funcAddPage = (name: string, icon: IconName) => {
-    dispatch(addPage({ dashboardId, page: { name, icon } }));
-  };
-
-  const funcRenamePage = (id: string, name: string) => {
-    dispatch(renamePage({ id, name }));
-  };
-
-  const funcDeletePage = (id: string) => {
-    dispatch(deletePage({ id, dashboardId }));
-  };
-
-  const funcSelectPage = (id: string) => {
-    dispatch(selectPage({ id }));
-  };
 
   return {
     pages,
-    addPage: funcAddPage,
-    renamePage: funcRenamePage,
-    deletePage: funcDeletePage,
-    selectPage: funcSelectPage,
+    dashbaordId,
+    addPage: (name: string, icon: IconName) => {
+      // 3. Verificamos que tengamos tanto el Dashboard activo como el Usuario
+      if (dashbaordId && user) {
+        dispatch(
+          addPageRemote({
+            dashboardId: dashbaordId,
+            name,
+            icon,
+            userId: user.id, // <--- 4. Pasamos el ID del usuario aquí
+          })
+        );
+      } else {
+        console.warn(
+          "No se puede crear página: Falta usuario o dashboard activo"
+        );
+      }
+    },
+
+    renamePage: (id: string, name: string) => {
+      dispatch(updatePageRemote({ id, updates: { name } }));
+    },
+
+    deletePage: (id: string) => {
+      dispatch(deletePageRemote(id));
+    },
   };
 };

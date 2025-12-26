@@ -24,7 +24,7 @@ export const Layout: Layout = (
   };
 };
 
-export const LayoutTypeDefinition = `
+export const LayoutType = `
 type LayoutConfig = {
   className?: string;
 };

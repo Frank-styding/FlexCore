@@ -1,24 +1,16 @@
 "use client";
-
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Tap } from "./Tap";
-import { TabContainer } from "./TabContainer";
 import { ScriptEditor } from "./ScriptEditor";
-import { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
-import { useConfigMonacoEditor } from "@/hooks/useConfigMonacoEditor";
-import {
-  addExecutionLogs,
-  clearConsole,
-  setJsCode,
-  setSqlCode,
-} from "@/lib/redux/features/ScriptEditorSlice";
-import { useCodeDefinitions } from "./useCodeDefinitions";
+import { useEffect, useRef, useState } from "react";
+import { useCodeDefinitions } from "../../../hooks/useCodeDefinitions";
 import { DynamicComponent } from "@/components/DynamicComponents/DynamicComponent";
 import { runScript } from "@/lib/runScript/runScript";
 import { useScriptActions } from "@/hooks/useScriptActions";
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
+import { TabContainer } from "./TabContainer";
+import { useScriptEditor } from "@/hooks/useScriptEditor";
 
 interface ScriptEditorProps {
   initialSql?: string;
@@ -26,72 +18,75 @@ interface ScriptEditorProps {
   onChangeJs?: (value: string) => void;
   onChangeSql?: (value: string) => void;
   onSave?: () => void;
+  isSaving?: boolean;
 }
-const sanitizeForRedux = (data: any): any => {
-  if (typeof data === "function") return "[Function]";
-  if (data === null || typeof data !== "object") return data;
-  if (Array.isArray(data)) return data.map(sanitizeForRedux);
-  const sanitized: any = {};
-  for (const key in data) {
-    sanitized[key] = sanitizeForRedux(data[key]);
-  }
-  return sanitized;
-};
 
 export const ComponentEditor = ({
-  initialSql = "SELECT * FROM items WHERE parent_id = {{parentId}}",
-  initialScript = "// Tienes acceso a 'sqlData' y 'variables'\nconst processed = sqlData.map(item => item.name);\nreturn processed;",
   onChangeJs,
   onChangeSql,
   onSave,
+  isSaving,
 }: ScriptEditorProps) => {
-  const { jsCode, sqlCode, logs } = useAppSelector(
-    (state) => state.scriptEditor
-  );
-  const dispatch = useAppDispatch();
+  const {
+    jsCode,
+    sqlCode,
+    logs,
+    addExecutionLogs,
+    setJsCode,
+    setSqlCode,
+    clearConsole,
+  } = useScriptEditor();
+
   const [uiState, setUiState] = useState({
     showEditor: true,
     showPreview: true,
   });
 
   const [liveComponent, setLiveComponent] = useState<any>(null);
-
+  const hasRunInitialScript = useRef(false);
+  const [renderKey, setRenderKey] = useState(0);
   const scriptContext = useScriptActions();
-  const { globalDefinitions, sqlDefinitions } = useCodeDefinitions({ sqlCode });
-
-  useEffect(() => {
-    dispatch(setJsCode(initialScript));
-    dispatch(setSqlCode(initialSql));
-  }, []);
-
-  const handleChangeJs = (v) => {
-    onChangeJs?.(v);
-    dispatch(setJsCode(v || ""));
-  };
-  const handleChangeSql = (v) => {
-    onChangeSql?.(v);
-    dispatch(setSqlCode(v || ""));
-  };
+  const { definitions } = useCodeDefinitions({ sqlCode });
 
   const onExecuteScript = async () => {
     try {
       const response = await runScript(jsCode, sqlCode, scriptContext);
+
       setLiveComponent(response.result);
-      const sanitizedResult = sanitizeForRedux(response.result);
-      dispatch(
-        addExecutionLogs({
-          logs: response.logs,
-          result: sanitizedResult,
-        })
-      );
+      /*       const sanitizedResult = sanitizeForRedux(response.result); */
+      addExecutionLogs(response.logs);
+      setRenderKey((prev) => prev + 1);
     } catch (error: any) {
       setLiveComponent(null);
-      dispatch(
-        addExecutionLogs({
-          logs: [{ message: "Error crítico:", data: error.message }],
-        })
-      );
+      addExecutionLogs([{ message: "Error crítico:", data: error.message }]);
     }
+  };
+
+  const handleChangeJs = (v) => {
+    onChangeJs?.(v);
+    setJsCode(v || "");
+  };
+  const handleChangeSql = (v) => {
+    onChangeSql?.(v);
+    setSqlCode(v || "");
+  };
+  // 3. NUEVO EFFECT: Ejecutar al montar (o cuando llegue el código)
+  useEffect(() => {
+    // Si ya corrió la primera vez, no hacemos nada (evita loop infinito al escribir)
+    if (hasRunInitialScript.current) return;
+
+    // "Siempre y cuando la pagina este cargada":
+    // Verificamos si hay código JS para ejecutar.
+    if (jsCode && jsCode.trim() !== "") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      onExecuteScript();
+      hasRunInitialScript.current = true; // Marcamos como ejecutado
+    }
+  }, [jsCode]);
+
+  const handleOnSave = () => {
+    onExecuteScript();
+    onSave?.();
   };
 
   const onTab = (name: string) => {
@@ -136,8 +131,14 @@ export const ComponentEditor = ({
             active={uiState.showPreview}
           />
         </ButtonGroup>
-        <Button variant="outline" onClick={onSave}>
-          <Save className="size-5" />
+        <Button variant="outline" onClick={handleOnSave}>
+          {isSaving ? (
+            // Spinner
+            <Loader2 className="size-5 animate-spin" />
+          ) : (
+            // Icono Normal
+            <Save className="size-5" />
+          )}
         </Button>
       </div>
       <div className="w-full h-full flex min-h-0 overflow-hidden gap-4">
@@ -148,15 +149,15 @@ export const ComponentEditor = ({
             jsValue={jsCode}
             onChangeJs={handleChangeJs}
             logs={logs}
-            onClean={() => dispatch(clearConsole())}
+            onClean={clearConsole}
             onPlay={onExecuteScript}
-            onSave={onSave}
-            globalDefinitions={globalDefinitions}
-            sqlDefinitions={sqlDefinitions}
+            onSave={handleOnSave}
+            definitions={definitions}
           />
         </TabContainer>
         <TabContainer show={uiState.showPreview}>
           <DynamicComponent
+            key={renderKey}
             data={liveComponent}
             context={liveComponent?.context}
           />

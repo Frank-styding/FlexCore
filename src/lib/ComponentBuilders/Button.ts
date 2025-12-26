@@ -32,7 +32,7 @@ export const Button: Button = ({
   };
 };
 
-export const ButtonTypeDefinition = `
+export const ButtonType = `
 type ButtonConfig = {
   className?: string;
   variant?: "outline" | "default";

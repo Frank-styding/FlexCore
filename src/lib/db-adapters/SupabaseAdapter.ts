@@ -8,7 +8,6 @@ export class SupabaseAdapter implements DatabaseAdapter {
 
   async connect(): Promise<void> {
     // Aquí podrías validar un token o hacer un ping a la base de datos
-    console.log("Conectando a Supabase...");
     await new Promise((resolve) => setTimeout(resolve, 500)); // Simula latencia
     this.connected = true;
   }

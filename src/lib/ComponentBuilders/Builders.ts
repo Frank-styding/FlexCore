@@ -1,6 +1,7 @@
-import { Button, ButtonTypeDefinition } from "./Button";
-import { Layout, LayoutTypeDefinition } from "./Layout";
-import { ConfirmModal, ConfirmModalTypeDefinition } from "./ConfirmModal";
+import { Button, ButtonType } from "./Button";
+import { Layout, LayoutType } from "./Layout";
+import { ConfirmModal, ConfirmModalType } from "./ConfirmModal";
+import { ComponentType } from "./Component";
 
 export const ComponentsBuilders = {
   Button,
@@ -8,7 +9,16 @@ export const ComponentsBuilders = {
   Layout,
 };
 
-export const ComponentsTypeDefinition = `${ButtonTypeDefinition}
-${ConfirmModalTypeDefinition}
-${LayoutTypeDefinition}
-`;
+/* export const ComponentBuildersTypes = new TypeBuilder()
+  .addCustom(ComponentType)
+  .addCustom(ButtonType)
+  .addCustom(LayoutType)
+  .addCustom(ConfirmModalType);
+ */
+
+export const ComponentTypes = [
+  ComponentType,
+  ButtonType,
+  LayoutType,
+  ConfirmModalType,
+];

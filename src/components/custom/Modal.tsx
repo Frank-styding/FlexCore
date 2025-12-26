@@ -16,12 +16,13 @@ import { useModals } from "../providers/ModalProvider";
 export interface ModalProps {
   id: string; // EL ID ES OBLIGATORIO Y ÚNICO
   triggerText?: string;
-  title: string;
+  title?: string;
   description?: string;
   className?: string;
   children?: ReactNode; // Aquí inyectaremos los inputs
   disableOutside?: boolean;
   disableEscape?: boolean;
+  onOpen?: () => void;
   onClose?: () => void;
 }
 
@@ -35,6 +36,7 @@ export function Modal({
   disableEscape,
   disableOutside,
   onClose,
+  onOpen,
 }: ModalProps) {
   const { isModalOpen, closeModal, registerModal, unregisterModal } =
     useModals();
@@ -54,10 +56,20 @@ export function Modal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]); // S
 
+  useEffect(() => {
+    if (isOpen) {
+      // Si isOpen pasa a true, ejecutamos onOpen
+      onOpen?.();
+    }
+    // No necesitamos un else para onClose aquí, porque ese ya lo manejas
+    // en el onOpenChange o cuando isOpen cambia a false externamente
+  }, [isOpen, onOpen]);
+
   const openChange = (open: boolean) => {
     if (!open) {
       onClose?.();
       closeModal(id);
+      return;
     }
   };
 
@@ -82,9 +94,11 @@ export function Modal({
           <DialogHeader className="">
             <DialogTitle>{title}</DialogTitle>
           </DialogHeader>
-          {description && (
-            <DialogDescription className="">{description}</DialogDescription>
-          )}
+
+          <DialogDescription className={!description ? "sr-only" : ""}>
+            {description}
+          </DialogDescription>
+
           <div className="mt-4">{children}</div>
         </DialogContent>
       </DialogPortal>

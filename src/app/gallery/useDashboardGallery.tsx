@@ -1,38 +1,61 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useModals } from "@/components/providers/ModalProvider";
 import { useDashboards } from "@/hooks/useDashboards";
-/* import { useRouterSync } from "@/hooks/useRouterSync"; */
 import { useSearch } from "@/hooks/useSearch";
+import { useUser } from "@/hooks/useUser";
+import { fetchDashboards } from "@/lib/redux/features/dashboardSlice";
+import { useAppDispatch } from "@/lib/redux/hooks";
 import { useRouter } from "next/navigation";
 
-import { ChangeEvent, useId } from "react";
+import { ChangeEvent, useEffect, useId } from "react";
 
 export const useDashboarGallery = () => {
+  const router = useRouter();
   const editFormId = useId();
   const confirmId = useId();
   const addFormId = useId();
+  const loadingModalId = useId();
   const { openModal, closeModal, getModalData } = useModals();
 
-  const router = useRouter();
+  // 1. Obtenemos signOut del hook useUser
+  const { user, signOut } = useUser();
 
   const {
     dashboards,
     addDashboard,
     deleteDashboard,
     renameDashboard,
-    selectDashboard,
+    isLoading,
   } = useDashboards();
 
-  /* const dashboards = useAppSelector((state) => state.dashboard.dashboards); */
+  const dispatch = useAppDispatch();
 
-  /*   const dispatch = useAppDispatch(); */
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchDashboards());
+    }
+  }, [user, dispatch]);
 
-  const [data, value, setValue] = useSearch(dashboards, (item, value) => {
+  useEffect(() => {
+    if (isLoading) {
+      openModal(loadingModalId, {
+        message: "Cargando galería...",
+        subMessage: "Obteniendo tus dashboards desde la nube.",
+      });
+    } else {
+      const timeout = setTimeout(() => {
+        closeModal(loadingModalId);
+      }, 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [isLoading]);
+
+  const { query, setQuery, results } = useSearch(dashboards, (item, value) => {
     return item.name.toLowerCase().includes(value.toLowerCase());
   });
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) =>
-    setValue(e.target.value);
+    setQuery(e.target.value);
 
   const onAdd = () => {
     openModal(addFormId);
@@ -40,14 +63,13 @@ export const useDashboarGallery = () => {
 
   const onConfirm = (data: Record<string, string>) => {
     closeModal(addFormId);
-    setValue("");
+    setQuery("");
+    if (!user) return;
     addDashboard(data["name"]);
-    //dispatch(addDashboard({ name: data["name"] }));
   };
 
   const onClick = (id: string) => {
-    selectDashboard(id);
-    router.push("/dashboard");
+    router.replace(`/dashboard/${id}`);
   };
 
   const onDelete = (id: string) => {
@@ -57,7 +79,6 @@ export const useDashboarGallery = () => {
   const onConfirmDelete = () => {
     const data = getModalData(confirmId);
     deleteDashboard(data.id);
-    /*     dispatch(deleteDashboard({ id: data.id })); */
   };
 
   const onEdit = (id: string) => {
@@ -67,13 +88,19 @@ export const useDashboarGallery = () => {
   const onConfirmEdit = ({ name }: { name: string }) => {
     const data = getModalData(editFormId);
     renameDashboard(data.id, name);
-    /*     dispatch(editDashboard({ dashboardId: data.id, name })); */
     closeModal(editFormId);
   };
 
+  // 2. Creamos el manejador para cerrar sesión
+  const onSignOut = async () => {
+    router.replace("/login");
+    await signOut();
+    // El middleware se encargará de redirigir al login
+  };
+
   return {
-    data,
-    value,
+    results,
+    query,
     onChange,
     onAdd,
     onConfirm,
@@ -82,8 +109,10 @@ export const useDashboarGallery = () => {
     onConfirmDelete,
     onEdit,
     onConfirmEdit,
+    onSignOut,
     addFormId,
     editFormId,
     confirmId,
+    loadingModalId,
   };
 };

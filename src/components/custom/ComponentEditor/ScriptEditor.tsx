@@ -4,7 +4,7 @@ import { Editor, OnMount } from "@monaco-editor/react";
 import { Console, ILog } from "./Console";
 import { useEffect, useState } from "react";
 import { Play } from "lucide-react";
-import { useConfigMonacoEditor } from "@/hooks/useConfigMonacoEditor";
+import { useMonacoTypings, TypeDefinition } from "@/hooks/useMonacoTypings";
 
 export interface CustomEditorProps {
   onPlay?: () => void;
@@ -19,11 +19,9 @@ export interface CustomEditorProps {
   disableConsole?: boolean;
   onSave?: () => void;
   globalDefinitions?: string;
-  sqlDefinitions?: string;
   alwaysOpenConsole?: boolean;
+  definitions?: TypeDefinition[];
 }
-
-const LIB_BASE_URI = "ts:filename/context";
 
 export const ScriptEditor = ({
   onPlay,
@@ -36,14 +34,11 @@ export const ScriptEditor = ({
   onChangeSql,
   sqlValue,
   onSave,
-  globalDefinitions,
-  sqlDefinitions,
   alwaysOpenConsole,
+  definitions = [],
 }: CustomEditorProps) => {
-  const { handleEditorDidMount } = useConfigMonacoEditor({
-    baseUri: LIB_BASE_URI,
-    globalDefinitions: globalDefinitions,
-    sqlDefinitions: sqlDefinitions,
+  const { handleEditorDidMount } = useMonacoTypings({
+    definitions: definitions,
   });
 
   const [isJs, setIsJs] = useState(true);

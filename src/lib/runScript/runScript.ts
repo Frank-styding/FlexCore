@@ -44,7 +44,7 @@ export function processSqlTemplate(
 
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 
-interface LogEntry {
+export interface LogEntry {
   message: string;
   data?: any[]; // El '?' hace que la propiedad sea opcional
 }
@@ -55,7 +55,7 @@ async function executeSafeScript(
   blockedList: string[]
 ) {
   const capturedLogs: LogEntry[] = [];
-  const realConsole = console;
+  /*  const realConsole = console; */
 
   const pushLog = (prefix, args) => {
     // 1. Lógica existente: Guardar para tu UI
@@ -70,13 +70,13 @@ async function executeSafeScript(
 
     // 2. NUEVA LÓGICA: Imprimir en la consola real (DevTools)
     // Esto permite que los eventos onClick muestren output en el navegador
-    if (prefix === "[ERROR] ") {
+    /*     if (prefix === "[ERROR] ") {
       realConsole.error(...args);
     } else if (prefix === "[WARN] ") {
       realConsole.warn(...args);
     } else {
       realConsole.log(...args);
-    }
+    } */
   };
 
   let result;

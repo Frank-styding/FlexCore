@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export interface ILog {
+export interface LogEntry {
   message: string;
   data?: any;
 }
@@ -8,8 +8,7 @@ export interface ILog {
 interface ScriptState {
   sqlCode: string;
   jsCode: string;
-  logs: ILog[];
-  isEditingBy?: string;
+  logs: LogEntry[];
 }
 
 const initialState: ScriptState = {
@@ -31,12 +30,10 @@ export const ScriptEditor = createSlice({
     clearConsole: (state) => {
       state.logs = [];
     },
-    setIsEditingBy: (state, action: PayloadAction<string | undefined>) => {
-      state.isEditingBy = action.payload;
-    },
+
     addExecutionLogs: (
       state,
-      action: PayloadAction<{ logs: ILog[]; result?: any }>
+      action: PayloadAction<{ logs: LogEntry[]; result?: any }>
     ) => {
       const { logs, result } = action.payload;
       // 1. Logs internos del script
@@ -54,11 +51,6 @@ export const ScriptEditor = createSlice({
   },
 });
 
-export const {
-  setJsCode,
-  setSqlCode,
-  clearConsole,
-  addExecutionLogs,
-  setIsEditingBy,
-} = ScriptEditor.actions;
+export const { setJsCode, setSqlCode, clearConsole, addExecutionLogs } =
+  ScriptEditor.actions;
 export default ScriptEditor.reducer;

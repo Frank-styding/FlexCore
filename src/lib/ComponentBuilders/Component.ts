@@ -20,7 +20,7 @@ export interface Component {
   subComponents?: Component[] | Component;
 }
 
-export const ComponentTypeDefinition = `
+export const ComponentType = `
 type Context = {
   comp: Record<string, any>;
 };
