@@ -5,9 +5,12 @@ import { useDashboards } from "@/hooks/useDashboards";
 import { useSearch } from "@/hooks/useSearch";
 import { useRouter } from "next/navigation";
 
-import { ChangeEvent } from "react";
+import { ChangeEvent, useId } from "react";
 
 export const useDashboarGallery = () => {
+  const editFormId = useId();
+  const confirmId = useId();
+  const addFormId = useId();
   const { openModal, closeModal, getModalData } = useModals();
 
   const router = useRouter();
@@ -32,11 +35,11 @@ export const useDashboarGallery = () => {
     setValue(e.target.value);
 
   const onAdd = () => {
-    openModal("add-dashboard");
+    openModal(addFormId);
   };
 
   const onConfirm = (data: Record<string, string>) => {
-    closeModal("add-dashboard");
+    closeModal(addFormId);
     setValue("");
     addDashboard(data["name"]);
     //dispatch(addDashboard({ name: data["name"] }));
@@ -48,24 +51,24 @@ export const useDashboarGallery = () => {
   };
 
   const onDelete = (id: string) => {
-    openModal("confirm", { id });
+    openModal(confirmId, { id });
   };
 
   const onConfirmDelete = () => {
-    const data = getModalData("confirm");
+    const data = getModalData(confirmId);
     deleteDashboard(data.id);
     /*     dispatch(deleteDashboard({ id: data.id })); */
   };
 
   const onEdit = (id: string) => {
-    openModal("edit-dashboard", { id });
+    openModal(editFormId, { id });
   };
 
   const onConfirmEdit = ({ name }: { name: string }) => {
-    const data = getModalData("edit-dashboard");
+    const data = getModalData(editFormId);
     renameDashboard(data.id, name);
     /*     dispatch(editDashboard({ dashboardId: data.id, name })); */
-    closeModal("edit-dashboard");
+    closeModal(editFormId);
   };
 
   return {
@@ -79,5 +82,8 @@ export const useDashboarGallery = () => {
     onConfirmDelete,
     onEdit,
     onConfirmEdit,
+    addFormId,
+    editFormId,
+    confirmId,
   };
 };

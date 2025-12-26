@@ -32,7 +32,8 @@ import { usePages } from "@/hooks/usePages";
 import { useRouter } from "next/navigation";
 import { Modal } from "@/components/custom/Modal";
 import { ScriptEditor } from "@/components/custom/ComponentEditor/ScriptEditor";
-import { ConfigConnectionModal } from "./ConfigConnectionModal";
+import { ConfigConnectionModal } from "@/components/custom/Modals/ConfigConnectionModal";
+import { useId } from "react";
 
 const schema = z.object({
   name: z.string().min(4),
@@ -46,29 +47,34 @@ export function DashbaordSidebar() {
   const { pages, addPage, renamePage, deletePage, selectPage } = usePages();
   const { openModal, closeModal, getModalData } = useModals();
 
-  const onAdd = () => openModal("add-page");
+  const addPageId = useId();
+  const editPageId = useId();
+  const confirmDeleteId = useId();
+  const confirmConnecitonId = useId();
+
+  const onAdd = () => openModal(addPageId);
 
   const onConfirm = (data: Record<string, any>) => {
     addPage(data.name, "LayoutDashboard");
-    closeModal("add-page");
+    closeModal(addPageId);
   };
 
   const onDelete = (data: Record<string, any>) => {
-    openModal("confirm-delete-page", data);
+    openModal(confirmDeleteId, data);
   };
 
   const onConfirmDelete = () => {
-    const data = getModalData("confirm-delete-page");
+    const data = getModalData(confirmDeleteId);
     deletePage(data.id);
   };
   const onEdit = (data: Record<string, any>) => {
-    openModal("edit-page", data);
+    openModal(editPageId, data);
   };
 
   const onConfirmEdit = (newData: Record<string, string>) => {
-    const data = getModalData("edit-page");
+    const data = getModalData(editPageId);
     renamePage(data.id, newData.name);
-    closeModal("edit-page");
+    closeModal(editPageId);
   };
 
   const onClick = (pageId: string) => {
@@ -77,7 +83,7 @@ export function DashbaordSidebar() {
   };
 
   const onSettings = () => {
-    openModal("config-connection-modal");
+    openModal(confirmConnecitonId);
   };
   return (
     <>
@@ -154,7 +160,7 @@ export function DashbaordSidebar() {
         className="gap-1"
         schema={schema}
         fields={fields}
-        id="add-page"
+        id={addPageId}
         title="Add Page"
         onSubmit={onConfirm}
       />
@@ -162,18 +168,18 @@ export function DashbaordSidebar() {
         className="gap-1"
         schema={schema}
         fields={fields}
-        id="edit-page"
+        id={editPageId}
         title="Edit Page"
         onSubmit={onConfirmEdit}
       />
       <ConfirmModal
         onConfirm={onConfirmDelete}
-        id="confirm-delete-page"
+        id={confirmDeleteId}
         description="¿ Are you sure ?"
         title="Confirm delete"
       />
       <ConfigConnectionModal
-        id="config-connection-modal"
+        id={confirmConnecitonId}
         title="Config connection"
         description="set connection config"
       />

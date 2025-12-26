@@ -28,6 +28,9 @@ export default function DashbaordGallery() {
     onConfirmDelete,
     onConfirm,
     onEdit,
+    addFormId,
+    editFormId,
+    confirmId,
     onConfirmEdit,
   } = useDashboarGallery();
 
@@ -63,7 +66,7 @@ export default function DashbaordGallery() {
           )}
 
           <FormModal
-            id="add-dashboard"
+            id={addFormId}
             title="New Dashboard"
             schema={carSchema}
             fields={carFields}
@@ -72,7 +75,7 @@ export default function DashbaordGallery() {
           />
 
           <FormModal
-            id="edit-dashboard"
+            id={editFormId}
             title="Edit Dashboard"
             schema={carSchema}
             fields={carFields}
@@ -81,7 +84,7 @@ export default function DashbaordGallery() {
           />
 
           <ConfirmModal
-            id="confirm"
+            id={confirmId}
             title="Confirmar"
             onConfirm={onConfirmDelete}
           />

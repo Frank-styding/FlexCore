@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
+  DialogPortal,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -21,6 +22,7 @@ export interface ModalProps {
   children?: ReactNode; // Aquí inyectaremos los inputs
   disableOutside?: boolean;
   disableEscape?: boolean;
+  onClose?: () => void;
 }
 
 export function Modal({
@@ -32,6 +34,7 @@ export function Modal({
   className,
   disableEscape,
   disableOutside,
+  onClose,
 }: ModalProps) {
   const { isModalOpen, closeModal, registerModal, unregisterModal } =
     useModals();
@@ -51,31 +54,40 @@ export function Modal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]); // S
 
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal(id)}>
-      {triggerText && (
-        <DialogTrigger asChild>
-          <Button>{triggerText}</Button>
-        </DialogTrigger>
-      )}
+  const openChange = (open: boolean) => {
+    if (!open) {
+      onClose?.();
+      closeModal(id);
+    }
+  };
 
-      <DialogContent
-        className={"sm:max-w-106.25 " + className}
-        onEscapeKeyDown={(e) => {
-          if (disableEscape) e.preventDefault();
-        }}
-        onInteractOutside={(e) => {
-          if (disableOutside) e.preventDefault();
-        }}
-      >
-        <DialogHeader className="">
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-        {description && (
-          <DialogDescription className="">{description}</DialogDescription>
+  return (
+    <Dialog open={isOpen} onOpenChange={openChange}>
+      <DialogPortal>
+        {triggerText && (
+          <DialogTrigger asChild>
+            <Button>{triggerText}</Button>
+          </DialogTrigger>
         )}
-        <div className="mt-4">{children}</div>
-      </DialogContent>
+
+        <DialogContent
+          className={"sm:max-w-106.25 " + className}
+          onEscapeKeyDown={(e) => {
+            if (disableEscape) e.preventDefault();
+          }}
+          onInteractOutside={(e) => {
+            if (disableOutside) e.preventDefault();
+          }}
+        >
+          <DialogHeader className="">
+            <DialogTitle>{title}</DialogTitle>
+          </DialogHeader>
+          {description && (
+            <DialogDescription className="">{description}</DialogDescription>
+          )}
+          <div className="mt-4">{children}</div>
+        </DialogContent>
+      </DialogPortal>
     </Dialog>
   );
 }

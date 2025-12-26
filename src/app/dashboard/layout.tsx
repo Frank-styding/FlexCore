@@ -1,17 +1,25 @@
 "use client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { ReactNode } from "react";
+import { ReactNode, useId } from "react";
 import { DashbaordSidebar } from "./DashboardSidebar";
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ComponentEditorModal } from "../../components/custom/CreateComponentModal";
+import { ComponentEditorModal } from "../../components/custom/Modals/CreateComponentModal";
 import { useModals } from "@/components/providers/ModalProvider";
+import { useScriptEditor } from "@/hooks/useScriptEditor";
 
 export default function Layout({ children }: { children: ReactNode }) {
+  const editorId = useId();
+  const { setIsEditingBy } = useScriptEditor();
   const { openModal } = useModals();
 
   const onSettings = () => {
-    openModal("create-component");
+    setIsEditingBy("page");
+    openModal(editorId);
+  };
+
+  const onClose = () => {
+    setIsEditingBy();
   };
 
   return (
@@ -34,7 +42,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
         <div className="w-full overflow-auto bg-background">{children}</div>
       </main>
-      <ComponentEditorModal id="create-component" />;
+      <ComponentEditorModal id={editorId} onClose={onClose} />;
     </SidebarProvider>
   );
 }

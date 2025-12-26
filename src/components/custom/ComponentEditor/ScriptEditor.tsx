@@ -47,7 +47,7 @@ export const ScriptEditor = ({
   });
 
   const [isJs, setIsJs] = useState(true);
-  const [openConsole, setOpenConsole] = useState(!disableConsole);
+  const [openConsole, setOpenConsole] = useState(false);
 
   const onTab = (name: string) => {
     if (name == "js") setIsJs(true);

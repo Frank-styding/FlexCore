@@ -3,6 +3,7 @@ import { useDashboards } from "./useDashboards";
 import { Context } from "@/lib/ComponentBuilders/Component";
 import { useAppDispatch } from "@/lib/redux/hooks";
 import { addExecutionLogs } from "@/lib/redux/features/ScriptEditorSlice";
+import { v4 as uuid } from "uuid";
 
 export const useScriptActions = () => {
   const { openModal, closeModal } = useModals();
@@ -43,6 +44,7 @@ export const useScriptActions = () => {
     openModal: handleOpenModal,
     closeModal: handleCloseModal,
     ConectionConfig,
+    uuid,
     context,
   };
 };
@@ -53,4 +55,5 @@ declare function openModal(id:string):void;
 declare function closeModal(id:string):void;
 declare const context:Context;
 declare function ConectionConfig(config:{url:string,key:string,type:string}):void;
+declare function uuid():string;
 `;
