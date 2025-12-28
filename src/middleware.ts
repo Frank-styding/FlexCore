@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // 1. Definimos rutas para fácil mantenimiento
-const publicRoutes = ["/login", "/register", "/auth", "/api/webhooks"]; // Rutas accesibles sin login
+const publicRoutes = ["/login", "/auth", "/api/webhooks", "/view"]; // Rutas accesibles sin login
 const authRoutes = ["/login", "/register"]; // Rutas que NO debe ver un usuario logueado
 
 export async function middleware(request: NextRequest) {

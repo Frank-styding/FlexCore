@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-/* import { ScrollArea } from "@/components/ui/scroll-area"; */
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Brush,
   ChevronDown,
@@ -142,7 +142,6 @@ export const Console = ({
   const [autoScroll, setAutoScroll] = useState(true);
   const endRef = useRef<HTMLDivElement>(null);
 
-  // Filtrado de logs
   const filteredLogs = useMemo(() => {
     if (!searchTerm) return logs;
     return logs.filter(
@@ -155,12 +154,15 @@ export const Console = ({
   // Auto-scroll effect
   useEffect(() => {
     if (autoScroll && endRef.current) {
-      endRef.current.scrollIntoView({ behavior: "smooth" });
+      // Un pequeño timeout ayuda a que el ScrollArea recalcule la altura antes de hacer scroll
+      setTimeout(() => {
+        endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 100);
     }
   }, [logs, autoScroll, filteredLogs.length]);
 
   return (
-    <div className="h-full flex flex-col bg-[#0c0c0c] border-t border-border overflow-hidden rounded-b-lg">
+    <div className="h-full min-h-0 flex flex-col  bg-[#0c0c0c] border-t border-border overflow-hidden rounded-b-lg">
       {/* Toolbar */}
       <div className="flex justify-between items-center px-2 py-1.5 bg-muted/40 border-b border-border gap-2">
         <div className="flex items-center gap-2 flex-1 max-w-sm">
@@ -200,23 +202,23 @@ export const Console = ({
         </div>
       </div>
 
-      {/* Logs Area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden p-2 custom-scrollbar">
-        {filteredLogs.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-muted-foreground/40 italic text-xs gap-2">
-            <span>Waiting for output...</span>
-          </div>
-        ) : (
-          <div className="flex flex-col">
-            {/* Usamos Index como key aquí porque es una lista de logs que solo crece al final. 
-                 Si los logs se pueden borrar individualmente, necesitarías un ID único real. */}
-            {filteredLogs.map((log, index) => (
-              <LogItem key={index} log={log} />
-            ))}
-            <div ref={endRef} />
-          </div>
-        )}
-      </div>
+      {/* 2. Reemplazamos el div con overflow nativo por ScrollArea */}
+      <ScrollArea className="flex-1 bg-black/10 max-h-[94%]">
+        <div className="p-2 flex flex-col min-h-full">
+          {filteredLogs.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground/40 italic text-xs gap-2 py-10">
+              <span>Waiting for output...</span>
+            </div>
+          ) : (
+            <div className="flex flex-col">
+              {filteredLogs.map((log, index) => (
+                <LogItem key={index} log={log} />
+              ))}
+              <div ref={endRef} className="h-px w-full" />
+            </div>
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 };

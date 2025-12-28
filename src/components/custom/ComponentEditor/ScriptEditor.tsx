@@ -85,17 +85,13 @@ export const ScriptEditor = ({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [onSave]); // Se vuelve a crear si la función onSave cambia
-
+  const showHeader = !(onlyJs && disableConsole);
   return (
-    <div
-      className={`h-full rounded-lg overflow-hidden  ${
-        !(onlyJs && disableConsole)
-          ? "grid grid-rows-[45px_1fr]"
-          : "grid grid-rows-[1fr]"
-      }`}
-    >
-      {!(onlyJs && disableConsole) && (
-        <div className="w-full bg-accent flex gap-3 items-center px-3">
+    // CAMBIO 1: Usamos flex flex-col en lugar de grid. h-full es crítico.
+    <div className="flex flex-col h-full w-full rounded-lg overflow-hidden bg-background">
+      {/* Header: Usamos flex-none para que no se encoja ni crezca */}
+      {showHeader && (
+        <div className="flex-none h-[45px] w-full bg-accent flex gap-3 items-center px-3 border-b border-border">
           {!onlyJs && (
             <ButtonGroup>
               <Button
@@ -139,9 +135,14 @@ export const ScriptEditor = ({
         </div>
       )}
 
-      <div className="w-full flex">
+      {/* CAMBIO 2: Área de contenido
+          flex-1: Toma todo el espacio restante.
+          min-h-0: CRUCIAL. Permite que flexbox reduzca el tamaño del hijo si el contenido interno (ScrollArea) es muy grande.
+          overflow-hidden: Asegura que nada se salga visualmente.
+      */}
+      <div className="flex-1 min-h-0 flex w-full overflow-hidden">
         {(!openConsole || alwaysOpenConsole) && (
-          <div className="flex-1 min-w-0 h-full">
+          <div className="flex-1 min-w-0 h-full relative">
             {isJs || onlyJs ? (
               <Editor
                 key={"js"}
@@ -151,6 +152,7 @@ export const ScriptEditor = ({
                 onChange={onChangeJs}
                 language="javascript"
                 options={editorOptions}
+                className="absolute inset-0" // Forzamos al editor a llenar su contenedor
               />
             ) : (
               <Editor
@@ -160,13 +162,18 @@ export const ScriptEditor = ({
                 value={sqlValue}
                 onChange={onChangeSql}
                 options={editorOptions}
+                className="absolute inset-0"
               />
             )}
           </div>
         )}
+
         {(openConsole || alwaysOpenConsole) && (
-          <div className="flex-1 min-w-0 h-full border-l border-border">
-            <Console logs={logs} onClean={onClean} />
+          <div className="flex-1 min-w-0 h-full border-l border-border relative">
+            {/* El Console ahora vivirá dentro de este contenedor flex estrictamente */}
+            <div className="absolute inset-0">
+              <Console logs={logs} onClean={onClean} />
+            </div>
           </div>
         )}
       </div>

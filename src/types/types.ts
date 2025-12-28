@@ -7,6 +7,7 @@ export interface Page {
   dashboardId: string;
   sqlScript: string;
   jsScript: string;
+  isPublic: boolean;
 }
 
 export interface Dashboard {

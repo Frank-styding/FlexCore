@@ -63,7 +63,10 @@ export const useScriptConnectionActions = () => {
 
   // 3. Conectar (Actualiza la instancia global)
   const ConectionConfig = useCallback(
-    async (config: { url: string; key: string; type: string }) => {
+    async (
+      config: { url: string; key: string; type: string },
+      shouldSave: boolean = true
+    ) => {
       try {
         // Desconectar anterior si existe
         if (activeAdapter) {
@@ -93,7 +96,9 @@ export const useScriptConnectionActions = () => {
         activeAdapter = newAdapter; // Guardar en variable global
 
         // Actualizar Redux
-        setConfig(config);
+        if (shouldSave) {
+          setConfig(config);
+        }
 
         dispatch(
           addExecutionLogs({

@@ -68,6 +68,9 @@ export const updatePageRemote = createAsyncThunk(
       dbUpdates.js_script = payload.updates.jsScript;
     if (payload.updates.sqlScript !== undefined)
       dbUpdates.sql_script = payload.updates.sqlScript;
+    if (payload.updates.isPublic !== undefined) {
+      dbUpdates.is_public = payload.updates.isPublic;
+    }
     // Nota: No actualizamos dashboard_id ni user_id usualmente en un update simple
 
     const { data, error } = await systemSupabase
@@ -115,6 +118,22 @@ export const fetchPageContent = createAsyncThunk(
   }
 );
 
+// Nuevo Thunk para cargar página completa con config (seguro para públicos)
+
+export const fetchPageWithConfig = createAsyncThunk(
+  "pages/fetchPageWithConfig",
+  async (pageId: string) => {
+    const { data, error } = await systemSupabase
+      .rpc("get_public_page_details", { p_page_id: pageId })
+      .maybeSingle(); // <--- CAMBIO IMPORTANTE: Usar maybeSingle
+
+    if (error) throw error;
+
+    // Si es privada/no existe, data será null. Eso está bien, el hook lo manejará.
+    return data;
+  }
+);
+
 // 4. Delete Page
 export const deletePageRemote = createAsyncThunk(
   "pages/deletePage",
@@ -156,6 +175,7 @@ export const pageSlice = createSlice({
           icon: dbPage.icon as IconName,
           jsScript: dbPage.js_script,
           sqlScript: dbPage.sql_script,
+          isPublic: dbPage.is_public,
         };
       });
       state.byId = pagesMap;
@@ -184,6 +204,7 @@ export const pageSlice = createSlice({
         icon: dbPage.icon as IconName,
         jsScript: dbPage.js_script,
         sqlScript: dbPage.sql_script,
+        isPublic: dbPage.is_public,
       };
       /*       state.activePage = dbPage.id; */
     });
@@ -196,6 +217,7 @@ export const pageSlice = createSlice({
           name: dbPage.name,
           jsScript: dbPage.js_script,
           sqlScript: dbPage.sql_script,
+          isPublic: dbPage.is_public,
         };
       }
     });

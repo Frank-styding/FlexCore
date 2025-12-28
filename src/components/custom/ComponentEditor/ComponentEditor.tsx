@@ -141,7 +141,7 @@ export const ComponentEditor = ({
           )}
         </Button>
       </div>
-      <div className="w-full h-full flex min-h-0 overflow-hidden gap-4">
+      <div className="w-full h-full flex min-h-0 max-h-full overflow-hidden gap-4">
         <TabContainer show={uiState.showEditor}>
           <ScriptEditor
             sqlValue={sqlCode}

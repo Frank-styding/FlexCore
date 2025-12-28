@@ -61,7 +61,7 @@ export const usePageViewer = () => {
       setIsFetchingContent(true);
       dispatch(fetchPageContent(pageId))
         .unwrap()
-        .catch((err) => console.error("Error fetching page content:", err))
+        .catch((err) => console.log("Error fetching page content:", err))
         .finally(() => setIsFetchingContent(false));
     }
   }, [pageId, isContentReady, isFetchingContent, dispatch]);

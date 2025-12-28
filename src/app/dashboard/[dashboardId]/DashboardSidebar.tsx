@@ -24,7 +24,14 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Settings, LayoutDashboard, Plus, MoreHorizontal } from "lucide-react";
+import {
+  Settings,
+  LayoutDashboard,
+  Plus,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import Link from "next/link";
 import z from "zod";
 import { ConfirmModal } from "@/components/custom/Modals/ConfirmModal";
@@ -97,8 +104,9 @@ export function DashboardSidebar() {
     const data = getModalData(confirmDeleteId);
     if (data?.id) {
       deletePage(data.id);
+      router.replace(`/dashboard/${dashboardId}`);
     }
-  }, [getModalData, confirmDeleteId, deletePage]);
+  }, [getModalData, confirmDeleteId, deletePage, router, dashboardId]);
 
   const onEdit = useCallback(
     (data: Record<string, any>) => {
@@ -161,14 +169,41 @@ export function DashboardSidebar() {
             </Link>
           </SidebarMenuButton>
 
-          <DropdownMenu>{/* ... Resto del menú igual ... */}</DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuAction showOnHover>
+                <MoreHorizontal />
+                <span className="sr-only">More</span>
+              </SidebarMenuAction>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-48 rounded-lg"
+              side="right"
+              align="start"
+            >
+              <DropdownMenuItem
+                onClick={() => onEdit({ id: item.id, name: item.name })}
+                className="cursor-pointer"
+              >
+                <Pencil className="text-muted-foreground size-4 mr-2" />
+                <span>Rename Page</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onDelete({ id: item.id })}
+                className="cursor-pointer text-destructive focus:text-destructive"
+              >
+                <Trash2 className="size-4 mr-2" />
+                <span>Delete Page</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </SidebarMenuItem>
       );
     });
   }, [status, pages, pageId, dashboardId, onEdit, onDelete]);
   return (
     <>
-      <Sidebar className="select-none" collapsible="icon">
+      <Sidebar className="select-none">
         <SidebarHeader>
           <Button asChild variant="outline" className="justify-center px-2">
             <Link href="/gallery" className="w-full flex items-center gap-2">
