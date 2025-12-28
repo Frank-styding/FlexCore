@@ -15,7 +15,8 @@ export const usePageViewer = () => {
   const params = useParams();
   const dispatch = useAppDispatch();
   const { openModal } = useModals();
-  const { setJsCode, setSqlCode, sqlCode, jsCode } = useScriptEditor();
+  const { setJsCode, setSqlCode, sqlCode, jsCode, isEditing, setIsEditing } =
+    useScriptEditor();
   // IDs
   const loadingId = useId();
   const pageId = params.pageId as string;
@@ -26,7 +27,7 @@ export const usePageViewer = () => {
   const [componentStruct, setComponentStruct] = useState<Component | null>(
     null
   );
-  const [isEditing, setIsEditing] = useState(false);
+  /*   const [isEditing, setIsEditing] = useState(false); */
   const [isRunningScript, setIsRunningScript] = useState(false);
   const [isFetchingContent, setIsFetchingContent] = useState(false);
 

@@ -12,14 +12,18 @@ import { useScriptConnectionActions } from "@/hooks/useScriptConnectionActions";
 type ConfigConnectionModalProps = ModalProps & {};
 export const ConfigConnectionModal = (props: ConfigConnectionModalProps) => {
   const { jsCode, setJsCode, clearConsole, logs } = useScriptEditor();
+
   const { setConfigScript, getConfigScript } = useDashboards();
+
   const scriptContext = useScriptConnectionActions();
   const { definitions } = useCodeDefinitions({ contextType: "DBConfig" });
   const { isModalOpen } = useModals();
   const isOpen = isModalOpen(props.id);
-  const onConnect = () => {
+
+  const onConnect = async () => {
     if (!jsCode) return;
-    runScript(jsCode, "", scriptContext);
+
+    await runScript(jsCode, "", scriptContext);
     setConfigScript(jsCode);
   };
 

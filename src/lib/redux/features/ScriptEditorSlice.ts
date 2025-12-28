@@ -9,12 +9,14 @@ interface ScriptState {
   sqlCode: string;
   jsCode: string;
   logs: LogEntry[];
+  isEditing: boolean;
 }
 
 const initialState: ScriptState = {
   sqlCode: "",
   jsCode: "",
   logs: [],
+  isEditing: false,
 };
 
 export const ScriptEditor = createSlice({
@@ -30,7 +32,9 @@ export const ScriptEditor = createSlice({
     clearConsole: (state) => {
       state.logs = [];
     },
-
+    setIsEditing: (state, action: PayloadAction<boolean>) => {
+      state.isEditing = action.payload;
+    },
     addExecutionLogs: (
       state,
       action: PayloadAction<{ logs: LogEntry[]; result?: any }>
@@ -51,6 +55,11 @@ export const ScriptEditor = createSlice({
   },
 });
 
-export const { setJsCode, setSqlCode, clearConsole, addExecutionLogs } =
-  ScriptEditor.actions;
+export const {
+  setJsCode,
+  setSqlCode,
+  clearConsole,
+  addExecutionLogs,
+  setIsEditing,
+} = ScriptEditor.actions;
 export default ScriptEditor.reducer;

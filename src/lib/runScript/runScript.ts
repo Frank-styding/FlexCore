@@ -59,15 +59,14 @@ async function executeSafeScript(
 
   const pushLog = (prefix, args) => {
     // 1. Lógica existente: Guardar para tu UI
-    const entry: LogEntry = { message: "" };
+    /*     const entry: LogEntry = { message: "" };
     entry.data = args.filter((item) => typeof item != "string");
     entry.message = args.filter((item) => typeof item == "string").join(",");
 
     if (entry.data?.length == 0) {
       entry.data = undefined;
     }
-    capturedLogs.push(entry);
-
+    capturedLogs.push(entry); */
     // 2. NUEVA LÓGICA: Imprimir en la consola real (DevTools)
     // Esto permite que los eventos onClick muestren output en el navegador
     /*     if (prefix === "[ERROR] ") {
@@ -124,6 +123,8 @@ export async function runScript(
     "globalThis",
     "eval",
     "Function",
+    "document",
+    "window",
   ];
 
   const handleExecQuery = async (

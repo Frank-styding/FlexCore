@@ -24,7 +24,7 @@ const editorPersistConfig = {
 const rootReducer = combineReducers({
   dashboards: dashboardSlice,
   pages: pageSlice,
-  scriptEditor: persistReducer(editorPersistConfig, scriptEditorSlice),
+  scriptEditor: scriptEditorSlice,
 });
 
 // store.ts

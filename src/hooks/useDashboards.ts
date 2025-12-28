@@ -4,23 +4,21 @@ import {
   updateDashboardRemote,
 } from "@/lib/redux/features/dashboardSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
-import { useUser } from "@/hooks/useUser"; // <--- 1. Importamos el hook de usuario
+import { useUser } from "@/hooks/useUser";
+import { useParams } from "next/navigation"; // <--- 1. Importar useParams
 
-export const useDashboards = (dashboardId?: string) => {
-  // 2. Obtenemos el usuario autenticado
+// Permitimos que el ID sea opcional
+export const useDashboards = (id?: string) => {
   const { user } = useUser();
-
+  const params = useParams(); // <--- 2. Leer params
+  const dashboardId = id || (params?.dashboardId as string);
   const { byId, status } = useAppSelector((state) => state.dashboards);
   const dispatch = useAppDispatch();
   const dashboards = Object.values(byId);
-
   return {
     dashboards,
-    /*     activeDashboardId, */
     isLoading: status === "idle",
 
-    // 3. Modificamos addDashboard para NO pedir userId como parámetro,
-    // sino tomarlo del contexto de auth.
     addDashboard: (name: string) => {
       if (user) {
         dispatch(addDashboardRemote({ name, userId: user.id }));
@@ -29,12 +27,14 @@ export const useDashboards = (dashboardId?: string) => {
       }
     },
 
-    deleteDashboard: (id: string) => dispatch(deleteDashboardRemote(id)),
+    deleteDashboard: (targetId: string) =>
+      dispatch(deleteDashboardRemote(targetId)),
 
-    renameDashboard: (id: string, name: string) =>
-      dispatch(updateDashboardRemote({ id, updates: { name } })),
+    renameDashboard: (targetId: string, name: string) =>
+      dispatch(updateDashboardRemote({ id: targetId, updates: { name } })),
 
     setConfig: (config: Record<string, any>) => {
+      // Ahora dashboardId tiene valor gracias a useParams
       if (dashboardId) {
         dispatch(
           updateDashboardRemote({
@@ -42,6 +42,8 @@ export const useDashboards = (dashboardId?: string) => {
             updates: { config },
           })
         );
+      } else {
+        console.error("No se pudo guardar la configuración: Falta dashboardId");
       }
     },
 
@@ -53,6 +55,8 @@ export const useDashboards = (dashboardId?: string) => {
             updates: { configScript: script },
           })
         );
+      } else {
+        console.error("No se pudo guardar el script: Falta dashboardId");
       }
     },
 

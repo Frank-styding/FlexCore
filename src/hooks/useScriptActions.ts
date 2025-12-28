@@ -3,16 +3,17 @@ import { Context } from "@/lib/ComponentBuilders/Component";
 import { v4 as uuid } from "uuid";
 import { useScriptEditor } from "./useScriptEditor";
 import { LogEntry } from "@/lib/runScript/runScript";
+import { useScriptConnectionActions } from "./useScriptConnectionActions";
 
 export const useScriptActions = () => {
   const { openModal, closeModal } = useModals();
-  const { addExecutionLogs } = useScriptEditor();
-
+  const { addExecutionLogs, isEditing } = useScriptEditor();
+  const { execQuery } = useScriptConnectionActions();
   const context: Context = { comp: {} };
-  const execQuery = (query: string) => {
+  /*   const execQuery = (query: string) => {
     return ["hola"];
   };
-
+ */
   const handleOpenModal = (id: string) => {
     openModal(id);
   };
@@ -23,7 +24,7 @@ export const useScriptActions = () => {
 
   const Editor = {
     log: (...args: any) => {
-      /*       if (isEditingBy) {
+      if (isEditing) {
         const entry: LogEntry = { message: "" };
         entry.data = args.filter((item) => typeof item != "string");
         entry.message = args
@@ -31,7 +32,7 @@ export const useScriptActions = () => {
           .join(",");
 
         addExecutionLogs([entry]);
-      } */
+      }
     },
   };
 
