@@ -41,7 +41,7 @@ export type FieldConfig = {
 export interface DynamicFormProps {
   schema: z.ZodType<any, any>; // El esquema de validación Zod
   defaultValues?: any; // Los datos iniciales
-  fields: FieldConfig[]; // La lista de campos a dibujar
+  fields?: FieldConfig[]; // La lista de campos a dibujar
   type?: "new" | "update";
   confirmName?: string;
   onSubmit?: (data: any, setError: UseFormSetError<any>) => void;
@@ -109,7 +109,7 @@ FormDynamicInput.displayName = "FormDynamicInput";
 export function DynamicForm({
   schema,
   defaultValues = {},
-  fields,
+  fields = [],
   onSubmit,
   type = "new",
   confirmName,

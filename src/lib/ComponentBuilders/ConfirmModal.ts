@@ -28,6 +28,8 @@ export const ConfirmModal: ConfirmModal = ({
     config,
     events: { onConfirm, onCancel },
     buildFuncs,
+    subComponents: [],
+    data: {},
   };
 };
 

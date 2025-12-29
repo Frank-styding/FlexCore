@@ -3,6 +3,10 @@ import { DynamicConfirmModal } from "./ConfirmModal";
 import { DynamicLayout } from "./Layout";
 import { DynamicGallery } from "./Gallery";
 import { DynamicNavigation } from "./Navigation";
+import { DynamicTable } from "./Table";
+import { DynamicText } from "./Text";
+import { DynamicLoadingModal } from "./LoadingModal";
+import { DynamicFormModal } from "./FormModal";
 
 export const COMPONENTS = {
   Button: DynamicButton,
@@ -10,4 +14,8 @@ export const COMPONENTS = {
   Layout: DynamicLayout,
   Gallery: DynamicGallery,
   Navigation: DynamicNavigation,
+  Table: DynamicTable,
+  Text: DynamicText,
+  LoadingModal: DynamicLoadingModal,
+  FormModal: DynamicFormModal,
 };

@@ -40,6 +40,9 @@ type Context = {
   comp: {
     btn: ButtonMap;
     nav: NavigationMap;
+    gallery: GalleryMap;
+    table:TableMap;
+    text:TextMap;
   };
 };
 
