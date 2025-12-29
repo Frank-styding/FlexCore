@@ -5,6 +5,7 @@ import { useComponentRegistration } from "../useComponentRegistration";
 // Ajusta la ruta a donde tengas tu FormModal.tsx
 import { FormModal } from "@/components/custom/Modals/FormModal";
 import { useModals } from "@/components/providers/ModalProvider";
+import { useScriptError } from "@/hooks/useScriptError";
 
 type DynamicFormModalProps = Component & {
   context: Context;
@@ -29,10 +30,12 @@ export const DynamicFormModal = ({
   id,
   data,
 }: DynamicFormModalProps) => {
+  const execute = useScriptError();
+
   // 1. Manejo del Submit
   const handleOnSubmit = (formData: any) => {
     // Ejecutamos el evento definido en el script
-    events.onSubmit?.(formData, context);
+    execute(events.onSubmit, formData, context);
     // Opcional: Cerrar automáticamente al enviar si se desea
     // closeModal(id);
   };

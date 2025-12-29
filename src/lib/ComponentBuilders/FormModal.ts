@@ -1,4 +1,10 @@
-import { BuildFuncs, Component, ComponentEvent, Context } from "./Component";
+import {
+  BuildFuncs,
+  Component,
+  ComponentEvent,
+  Context,
+  IComponentData,
+} from "./Component";
 
 // 1. Configuración
 type FormModalConfig = {
@@ -19,7 +25,7 @@ type FormModalDataDef = {
 type FormModalData = {
   id: string;
   config?: FormModalConfig;
-  data?: FormModalDataDef;
+  data?: IComponentData<FormModalDataDef>;
   onSubmit: ComponentEvent; // Evento que recibe los datos del form
   buildFuncs: BuildFuncs;
   context?: Context;
@@ -65,7 +71,7 @@ type FormModalDataDef = {
 interface FormModalProps {
   id: string;
   config?: FormModalConfig;
-  data?: FormModalDataDef;
+  data?: IComponentData<FormModalDataDef>;
   onSubmit?: ComponentEvent;
   buildFuncs?: BuildFuncs;
   context?: Context;

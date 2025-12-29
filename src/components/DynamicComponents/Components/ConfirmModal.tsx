@@ -1,4 +1,5 @@
 import { ConfirmModal } from "@/components/custom/Modals/ConfirmModal";
+import { useScriptError } from "@/hooks/useScriptError";
 import { Component, Context } from "@/lib/ComponentBuilders/Component";
 
 export const DynamicConfirmModal = ({
@@ -7,12 +8,13 @@ export const DynamicConfirmModal = ({
   id,
   context,
 }: Component & { context: Context }) => {
+  const execute = useScriptError();
   const handleOnConfirm = () => {
-    events.onConfirm?.(undefined, context);
+    execute(events.onConfirm, undefined, context);
   };
 
   const handleOnCancel = () => {
-    events.onCancel?.(undefined, context);
+    execute(events.onCancel, undefined, context);
   };
 
   return (

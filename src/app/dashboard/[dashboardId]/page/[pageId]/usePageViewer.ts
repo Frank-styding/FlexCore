@@ -9,6 +9,8 @@ import { useScriptActions } from "@/hooks/useScriptActions";
 import { useScriptEditor } from "@/hooks/useScriptEditor";
 import { useModals } from "@/components/providers/ModalProvider";
 import { usePageEditor } from "@/hooks/usePageEditor";
+import { useDashboards } from "@/hooks/useDashboards";
+import { useDBConnection } from "@/hooks/useDBConnection";
 
 export const usePageViewer = () => {
   // --- 1. HOOKS & ROUTING ---
@@ -20,6 +22,8 @@ export const usePageViewer = () => {
   // Extraemos las acciones del editor
   const { setJsCode, setSqlCode, jsCode, sqlCode, isEditing, setIsEditing } =
     useScriptEditor();
+
+  const { isConnected } = useDBConnection();
 
   const loadingId = useId();
   const pageId = params.pageId as string;
@@ -76,13 +80,12 @@ export const usePageViewer = () => {
         });
     }
   }, [pageId, isContentReady, dispatch]);
-
   // --- 7. EFECTO: EJECUCIÓN DE SCRIPT ---
   useEffect(() => {
     let isMounted = true;
 
     // A. Validaciones iniciales
-    if (!pageId || !isContentReady) return;
+    if (!pageId || !isContentReady || !isConnected) return;
 
     // B. Si no hay script, limpiamos todo y aseguramos apagar el loading
     if (!jsScript || jsScript.trim() === "") {
@@ -112,7 +115,7 @@ export const usePageViewer = () => {
     return () => {
       isMounted = false;
     };
-  }, [pageId, isContentReady, jsScript, sqlScript]);
+  }, [pageId, isContentReady, jsScript, sqlScript, isConnected]);
 
   // --- 8. HANDLERS ---
 

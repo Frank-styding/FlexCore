@@ -4,6 +4,7 @@ import {
   ComponentEvent,
   DynamicValue,
   Context,
+  IComponentData,
 } from "./Component";
 
 export type TableColumn = {
@@ -30,7 +31,7 @@ type TableData = {
   id: string;
   config?: TableConfig;
   columns: TableColumn[];
-  data?: DynamicValue<any[]>;
+  data?: IComponentData<DynamicValue<any[]>>;
   onRowClick: ComponentEvent;
 
   // Nuevos Eventos de Acción
@@ -90,7 +91,7 @@ type TableConfig = {
 interface TableProps {
   id: string;
   columns: TableColumn[];
-  data?: DynamicValue<any[]>;
+  data?: IComponentData<DynamicValue<any[]>>;
   config?: TableConfig;
   onRowClick?: ComponentEvent;
   onEdit?: ComponentEvent;

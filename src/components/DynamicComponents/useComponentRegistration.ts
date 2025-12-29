@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/immutability */
 import { Context } from "@/lib/ComponentBuilders/Component";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 
 export const useComponentRegistration = <TMethods extends Record<string, any>>(
   context: Context | undefined,
@@ -8,7 +8,7 @@ export const useComponentRegistration = <TMethods extends Record<string, any>>(
   id: string,
   methods: TMethods
 ) => {
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!context || !id) return;
 
     // 1. Asegurar estructura (Defensive Programming)

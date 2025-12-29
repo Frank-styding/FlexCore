@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search } from "lucide-react";
+import { useScriptError } from "@/hooks/useScriptError";
+import { v4 as uuid } from "uuid";
 
 type GalleryProps = Component & {
   context: Context;
@@ -30,18 +32,24 @@ export const DynamicGallery = ({
 }: GalleryProps) => {
   const [itemsRef, setItems, items] = useDynamicValue(context, data.items, []);
   const [searchTerm, setSearchTerm] = useState("");
+  const execute = useScriptError();
 
   const handleCardClick = (item: any) => {
-    console.log(events);
-    events.onCardClick?.(item, context);
+    execute(events.onCardClick, item, context);
   };
 
   const filteredItems = useMemo(() => {
     if (!Array.isArray(items)) return [];
-    if (!searchTerm) return items;
-    return items.filter((item) =>
-      item.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    if (!searchTerm)
+      return items
+        .filter(Boolean)
+        .map((item) => ({ ...item, id: item.id ?? uuid() }));
+    return items
+      .filter((item) =>
+        item.title.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .filter(Boolean)
+      .map((item) => ({ ...item, id: item.id ?? uuid() }));
   }, [items, searchTerm]);
 
   const exposedMethods = useMemo(

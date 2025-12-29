@@ -7,12 +7,14 @@ import { SupabaseAdapter } from "@/lib/db-adapters/SupabaseAdapter";
 import { MockAdapter } from "@/lib/db-adapters/MockAdapter";
 import { processSqlTemplate } from "@/lib/runScript/runScript";
 import { toast } from "sonner";
+import { useDBConnection } from "./useDBConnection";
 
 // 1. SINGLETON: Variable fuera del hook para compartir la conexión entre componentes
 let activeAdapter: DatabaseAdapter | null = null;
 
 export const useScriptConnectionActions = () => {
   const { setConfig } = useDashboards();
+  const { setIsConnected } = useDBConnection();
   const dispatch = useAppDispatch();
 
   // 2. Ejecutar Query (Usa la instancia global)
@@ -27,7 +29,7 @@ export const useScriptConnectionActions = () => {
           description: errorMsg,
         });
 
-        throw new Error(errorMsg);
+        return [];
       }
 
       const processedQuery = context
@@ -37,7 +39,7 @@ export const useScriptConnectionActions = () => {
       const start = performance.now();
       const result = await activeAdapter.execute(processedQuery);
       const end = performance.now();
-
+      /* 
       dispatch(
         addExecutionLogs({
           logs: [
@@ -51,7 +53,7 @@ export const useScriptConnectionActions = () => {
           ],
         })
       );
-
+ */
       if (result.error) {
         throw new Error(result.error);
       }
@@ -71,6 +73,8 @@ export const useScriptConnectionActions = () => {
         // Desconectar anterior si existe
         if (activeAdapter) {
           await activeAdapter.disconnect();
+          setIsConnected(false);
+
           activeAdapter = null;
         }
 
@@ -99,6 +103,7 @@ export const useScriptConnectionActions = () => {
         if (shouldSave) {
           setConfig(config);
         }
+        setIsConnected(true);
 
         dispatch(
           addExecutionLogs({

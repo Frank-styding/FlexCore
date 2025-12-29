@@ -4,6 +4,7 @@ import {
   ComponentEvent,
   DynamicValue,
   Context,
+  IComponentData,
 } from "./Component";
 
 export type GalleryItem = {
@@ -36,7 +37,7 @@ type GalleryData = {
   onCardClick: ComponentEvent;
   buildFuncs: BuildFuncs;
   context?: Context;
-  items?: DynamicValue<GalleryItem[]>;
+  items?: IComponentData<DynamicValue<GalleryItem[]>>;
 };
 
 type GalleryFactory = (data: GalleryData) => Component;
@@ -79,7 +80,7 @@ type GalleryConfig = {
 
 interface GalleryProps {
   id: string;
-  items?: DynamicValue<GalleryItem[]>;
+  items?: IComponentData<DynamicValue<GalleryItem[]>>;
   config?: GalleryConfig;
   onCardClick?: ComponentEvent;
   buildFuncs?: BuildFuncs;

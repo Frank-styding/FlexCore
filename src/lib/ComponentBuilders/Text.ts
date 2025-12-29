@@ -4,6 +4,7 @@ import {
   ComponentEvent,
   DynamicValue,
   Context,
+  IComponentData,
 } from "./Component";
 
 // 1. Configuración Visual
@@ -37,7 +38,7 @@ export interface TextMap {
 type TextData = {
   id: string;
   config?: TextConfig;
-  content?: DynamicValue<string>; // El contenido del texto
+  content?: IComponentData<DynamicValue<string>>; // El contenido del texto
   onClick: ComponentEvent; // Opcional: hacer click en el texto
   buildFuncs: BuildFuncs;
   context?: Context;
@@ -79,7 +80,7 @@ type TextConfig = {
 
 interface TextProps {
   id: string;
-  content?: DynamicValue<string>;
+  content?: IComponentData<DynamicValue<string>>; // El contenido del texto
   config?: TextConfig;
   onClick?: ComponentEvent;
   buildFuncs?: BuildFuncs;

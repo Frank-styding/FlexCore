@@ -2,8 +2,9 @@
 import { Button } from "@/components/ui/button";
 import { useDynamicValue } from "@/components/DynamicComponents/useDynamicValue";
 import { Component, Context } from "@/lib/ComponentBuilders/Component";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { useComponentRegistration } from "../useComponentRegistration";
+import { useScriptError } from "@/hooks/useScriptError";
 
 export const DynamicButton = ({
   config,
@@ -13,9 +14,10 @@ export const DynamicButton = ({
   data,
 }: Component & { context: Context }) => {
   const [labelRef, setLabel, label] = useDynamicValue(context, data.label, "");
+  const execute = useScriptError();
 
   const handleOnClick = (e: any) => {
-    events.onClick?.(e, context);
+    execute(events.onClick, e, context);
   };
 
   const exposedMethods = useMemo(

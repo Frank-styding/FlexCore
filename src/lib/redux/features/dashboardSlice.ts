@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { Dashboard } from "@/types/types";
 import { systemSupabase } from "@/lib/supabase/client"; // Tu cliente supabase
 

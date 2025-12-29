@@ -4,6 +4,7 @@ import {
   ComponentEvent,
   DynamicValue,
   Context,
+  IComponentData,
 } from "./Component";
 
 type ButtonConfig = {
@@ -29,7 +30,7 @@ type Button = (data: {
   onClick: ComponentEvent;
   buildFuncs: BuildFuncs;
   context?: Context;
-  label?: DynamicValue<string>;
+  label?: IComponentData<DynamicValue<string>>;
 }) => Component;
 
 export const Button: Button = ({
@@ -61,7 +62,7 @@ type ButtonConfig = {
 
 interface ButtonProps {
   id: string;
-  label?: DynamicValue<string>;
+  label?: IComponentData<DynamicValue<string>>;
   config?: ButtonConfig; // Aquí ocurre la magia
   onClick?: ComponentEvent;     // Opcional para facilitar pruebas
   buildFuncs?: BuildFuncs;

@@ -1,30 +1,22 @@
+/* eslint-disable react-hooks/refs */
 "use client";
-import { useState } from "react";
+import { useRef } from "react";
 import { Provider } from "react-redux";
-import { makeStore } from "@/lib/redux/store";
-// 1. Nuevas importaciones necesarias
-import { persistStore } from "redux-persist";
-import { PersistGate } from "redux-persist/integration/react";
+import { makeStore, AppStore } from "@/lib/redux/store";
 
 export default function StoreProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // 2. Creamos el store una única vez
-  const [store] = useState(() => makeStore());
+  // Usamos useRef para mantener la instancia del store a través de re-renders
+  // sin disparar nuevos renderizados cuando se crea.
+  const storeRef = useRef<AppStore>(undefined);
 
-  // 3. Creamos el 'persistor' ligado a ese store una única vez
-  // Esto se encarga de vigilar el store y guardar cambios en localStorage
-  const [persistor] = useState(() => persistStore(store));
+  if (!storeRef.current) {
+    // Crea la instancia del store la primera vez que se renderiza este componente
+    storeRef.current = makeStore();
+  }
 
-  return (
-    <Provider store={store}>
-      {/* 4. Envolvemos la app en PersistGate */}
-      {/* 'loading' es lo que se muestra mientras se recuperan los datos (puede ser un spinner o null) */}
-      <PersistGate loading={null} persistor={persistor}>
-        {children}
-      </PersistGate>
-    </Provider>
-  );
+  return <Provider store={storeRef.current}>{children}</Provider>;
 }

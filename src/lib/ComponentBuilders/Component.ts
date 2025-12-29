@@ -16,11 +16,12 @@ export interface BuildFuncs {
   load?: () => Context;
 }
 
+export type IComponentData<T> = T | { data: T; keepData: boolean };
 export interface Component {
   type: string;
   id: string;
   config: Record<string, any>;
-  data: Record<string, any>;
+  data: Record<string, IComponentData<any>>;
   events: Events;
   buildFuncs: BuildFuncs;
   context?: Context;
@@ -53,6 +54,7 @@ type Events = Record<string, ComponentEvent>;
 type DynamicResult<T> = T | Promise<T>;
 type DynamicFunction<T> = (context: Context) => DynamicResult<T>;
 type DynamicValue<T> = T | DynamicFunction<T>;
+type IComponentData<T> = T | { data: T; keepData: boolean };
 
 interface BuildFuncs {
   load?: () => Context;
@@ -63,7 +65,7 @@ interface Component {
   type: string;
   id: string;
   config:Record<string, any>;
-  data:Record<string,any>;
+  data:Record<string, IComponentData<any>>
   events: Events;
   buildFuncs: BuildFuncs;
   context?: Context;
