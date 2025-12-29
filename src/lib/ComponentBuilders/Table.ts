@@ -1,5 +1,4 @@
 import {
-  BuildFuncs,
   Component,
   ComponentEvent,
   DynamicValue,
@@ -39,7 +38,6 @@ type TableData = {
   onDelete: ComponentEvent; // (item) => void
   onBulkDelete: ComponentEvent; // (items[]) => void
 
-  buildFuncs: BuildFuncs;
   context?: Context;
 };
 
@@ -54,7 +52,6 @@ export const Table: TableFactory = ({
   onEdit,
   onDelete,
   onBulkDelete,
-  buildFuncs,
   context,
 }) => {
   return {
@@ -68,7 +65,6 @@ export const Table: TableFactory = ({
       enableExport: true,
     },
     events: { onRowClick, onEdit, onDelete, onBulkDelete }, // Pasamos los nuevos eventos
-    buildFuncs,
   };
 };
 
@@ -97,7 +93,6 @@ interface TableProps {
   onEdit?: ComponentEvent;
   onDelete?: ComponentEvent;
   onBulkDelete?: ComponentEvent;
-  buildFuncs?: BuildFuncs;
   context?: Context;
 }
 

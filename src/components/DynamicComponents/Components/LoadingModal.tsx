@@ -1,9 +1,6 @@
 import { Component, Context } from "@/lib/ComponentBuilders/Component";
-import { useMemo } from "react";
-import { useComponentRegistration } from "../useComponentRegistration";
-// Asegúrate de que la ruta de importación sea correcta según tu estructura
 import { LoadingModal } from "@/components/custom/Modals/LoadingModal";
-import { useModals } from "@/components/providers/ModalProvider";
+import { useScriptError } from "@/hooks/useScriptError";
 
 type DynamicLoadingModalProps = Component & {
   context: Context;
@@ -15,6 +12,7 @@ type DynamicLoadingModalProps = Component & {
 export const DynamicLoadingModal = ({
   config,
   context,
+  events,
   id,
 }: DynamicLoadingModalProps) => {
   /*   const { openModal, closeModal } = useModals(); */
@@ -30,7 +28,13 @@ export const DynamicLoadingModal = ({
   );
 
   useComponentRegistration(context, "loading", id, exposedMethods); */
-
+  const execute = useScriptError();
+  const onOpen = async () => {
+    await execute(events.onOpen, undefined, context);
+  };
+  const onClose = async () => {
+    await execute(events.onClose, undefined, context);
+  };
   // 2. Renderizamos el componente UI base
-  return <LoadingModal id={id} {...config} />;
+  return <LoadingModal id={id} {...config} onOpen={onOpen} onClose={onClose} />;
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useLayoutEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -45,7 +45,7 @@ export function Modal({
   const isOpen = isModalOpen(id);
 
   // EFECTO DE REGISTRO
-  useEffect(() => {
+  useLayoutEffect(() => {
     // 1. Al montar: Registrar ID
     registerModal(id);
 

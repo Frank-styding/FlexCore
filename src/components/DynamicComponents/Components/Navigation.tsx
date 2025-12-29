@@ -10,7 +10,6 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
@@ -93,8 +92,8 @@ export const DynamicNavigation = ({
   context,
   id,
   data,
-  buildFuncs,
 }: NavigationProps) => {
+  data.routes ??= [];
   // 3. Estado Inicial Inteligente
   const [currentPath, setCurrentPath] = useState<string>(() => {
     if (typeof window !== "undefined") {
@@ -241,7 +240,7 @@ export const DynamicNavigation = ({
         })}
       </div>
     );
-  }, [activeNode, currentPath, buildFuncs, DynamicComponent, context]);
+  }, [activeNode, currentPath, DynamicComponent, context]);
 
   return (
     <div className={cn("flex flex-col gap-4 w-full h-full", config.className)}>

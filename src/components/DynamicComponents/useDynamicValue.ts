@@ -5,11 +5,9 @@ import {
   DynamicValue,
   IComponentData,
 } from "@/lib/ComponentBuilders/Component";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
-// --- 1. CACHÉ EXTERNA (Sobrevive al desmontaje del componente) ---
-// Usamos WeakMap para que si el objeto de configuración se borra de memoria,
-// la data cacheada también se borre (evita memory leaks).
+// Cache Global (WeakMap)
 const globalDataCache = new WeakMap<object, any>();
 
 function isComponentDataWrapper<T>(
@@ -30,7 +28,7 @@ export const useDynamicValue = <T>(
 ) => {
   const execute = useScriptError();
 
-  // Intentamos recuperar el valor inicial de la caché global si existe
+  // Función interna para leer caché inicial síncronamente
   const getInitialValue = (): T => {
     if (
       _value &&
@@ -45,15 +43,24 @@ export const useDynamicValue = <T>(
 
   const [value, setStateValue] = useState<T>(getInitialValue);
   const valueRef = useRef<T>(getInitialValue());
-
-  // Ref local para evitar re-ejecuciones durante el Mismo montaje
   const hasExecuted = useRef(false);
+
+  // --- NUEVO: Control de Recarga ---
+  const [reloadVersion, setReloadVersion] = useState(0); // Disparador del Effect
+  const ignoreCacheOnce = useRef(false); // Flag para saltar caché
 
   const setValue = (newValue: T) => {
     if (valueRef.current === newValue) return;
     valueRef.current = newValue;
     setStateValue(newValue);
   };
+
+  // Esta es la función que devolveremos al componente
+  const reload = useCallback(() => {
+    ignoreCacheOnce.current = true; // 1. Orden: Ignorar caché en la próxima vuelta
+    hasExecuted.current = false; // 2. Orden: Permitir ejecución local
+    setReloadVersion((v) => v + 1); // 3. Disparar: Ejecutar Effect
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -63,31 +70,37 @@ export const useDynamicValue = <T>(
 
       let source: DynamicValue<T>;
       let shouldKeepData = false;
-
-      // Objeto referencia para usar como clave en el WeakMap
       let cacheKey: object | null = null;
 
       if (isComponentDataWrapper<DynamicValue<T>>(_value)) {
         source = _value.data;
         shouldKeepData = _value.keepData;
-        cacheKey = _value; // Usamos el objeto wrapper como llave única
+        cacheKey = _value;
       } else {
         source = _value as DynamicValue<T>;
       }
 
-      // 2. LÓGICA KEEP DATA MEJORADA:
-      // A. Si ya ejecutamos localmente en este montaje, parar.
-      if (shouldKeepData && hasExecuted.current) return;
+      // --- LÓGICA DE CACHÉ ACTUALIZADA ---
 
-      // B. Si existe en caché GLOBAL y pedimos keepData, usarlo y parar.
-      if (shouldKeepData && cacheKey && globalDataCache.has(cacheKey)) {
+      // A. Si ya se ejecutó en este montaje Y NO se pidió recargar, salir.
+      if (shouldKeepData && hasExecuted.current && !ignoreCacheOnce.current) {
+        return;
+      }
+
+      // B. Revisar caché global (SOLO SI ignoreCacheOnce ES FALSO)
+      if (
+        shouldKeepData &&
+        cacheKey &&
+        globalDataCache.has(cacheKey) &&
+        !ignoreCacheOnce.current // <--- Aquí está la clave
+      ) {
         const cachedVal = globalDataCache.get(cacheKey);
         setValue(cachedVal);
         hasExecuted.current = true;
         return;
       }
 
-      // 3. Ejecución
+      // 3. Ejecución Real (Fetching)
       if (typeof source === "function") {
         try {
           const func = source as DynamicFunction<T>;
@@ -97,7 +110,7 @@ export const useDynamicValue = <T>(
             setValue(result);
             hasExecuted.current = true;
 
-            // 4. GUARDAR EN CACHÉ GLOBAL
+            // Guardar en caché global
             if (shouldKeepData && cacheKey) {
               globalDataCache.set(cacheKey, result);
             }
@@ -106,10 +119,16 @@ export const useDynamicValue = <T>(
           console.error("Error resolving dynamic value:", error);
         }
       } else {
+        // Valor estático
         if (isMounted) {
           setValue(source as T);
           hasExecuted.current = true;
         }
+      }
+
+      // Limpiamos el flag de forzar recarga después de intentar resolver
+      if (ignoreCacheOnce.current) {
+        ignoreCacheOnce.current = false;
       }
     };
 
@@ -118,8 +137,9 @@ export const useDynamicValue = <T>(
     return () => {
       isMounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [_value, context]);
+    // Agregamos reloadVersion a las dependencias para que el effect corra al cambiarlo
+  }, [_value, context, reloadVersion]);
 
-  return [valueRef, setValue, value] as const;
+  // Retornamos 4 valores: ref, setter manual, valor estado, y función reload
+  return [valueRef, setValue, value, reload] as const;
 };

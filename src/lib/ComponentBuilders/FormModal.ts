@@ -1,8 +1,9 @@
+import { FieldConfig } from "@/components/custom/DynamicForm";
 import {
-  BuildFuncs,
   Component,
   ComponentEvent,
   Context,
+  DynamicValue,
   IComponentData,
 } from "./Component";
 
@@ -19,7 +20,8 @@ type FormModalConfig = {
 // 3. Data (Esquema y Campos del formulario)
 type FormModalDataDef = {
   schema?: any; // Zod schema o similar
-  fields?: any[]; // Definición de campos
+  fields?: FieldConfig[]; // Definición de campos
+  defaultValues: IComponentData<DynamicValue<any>>;
 };
 
 type FormModalData = {
@@ -27,7 +29,6 @@ type FormModalData = {
   config?: FormModalConfig;
   data?: IComponentData<FormModalDataDef>;
   onSubmit: ComponentEvent; // Evento que recibe los datos del form
-  buildFuncs: BuildFuncs;
   context?: Context;
 };
 
@@ -38,7 +39,6 @@ export const FormModal: FormModalFactory = ({
   config,
   data,
   onSubmit,
-  buildFuncs,
   context,
 }) => {
   return {
@@ -48,12 +48,19 @@ export const FormModal: FormModalFactory = ({
     data: data || {},
     config: config ?? {},
     events: { onSubmit },
-    buildFuncs,
   };
 };
 
 // 4. Tipos para el Editor
 export const FormModalType = `
+type FieldConfig = {
+  name: string;
+  label: string;
+  type: "text" | "number" | "email" | "select" | "date" | "icon";
+  placeholder?: string;
+  options?: { label: string; value: string }[]; // Solo para selects
+  className?: string; // Para controlar el ancho (col-span-1, etc.)
+};
 type FormModalConfig = {
   className?: string;
   classNameForm?: string;
@@ -65,7 +72,8 @@ type FormModalConfig = {
 
 type FormModalDataDef = {
   schema?: any;
-  fields?: any[];
+  fields?: FieldConfig[];
+  defaultValues: IComponentData<DynamicValue<any>>;
 };
 
 interface FormModalProps {
@@ -73,7 +81,6 @@ interface FormModalProps {
   config?: FormModalConfig;
   data?: IComponentData<FormModalDataDef>;
   onSubmit?: ComponentEvent;
-  buildFuncs?: BuildFuncs;
   context?: Context;
 }
 

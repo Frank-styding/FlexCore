@@ -8,6 +8,7 @@ import { Table, TableEventsType, TableType } from "./Table";
 import { CText, TextEventsType, TextType } from "./Text";
 import { LoadingModal, LoadingModalType } from "./LoaddingModal";
 import { FormModal, FormModalType } from "./FormModal";
+import { Fragment, FragmentType } from "./Fragment";
 
 export const ComponentsBuilders = {
   Button,
@@ -19,6 +20,7 @@ export const ComponentsBuilders = {
   CText,
   LoadingModal,
   FormModal,
+  Fragment,
 };
 
 export const ComponentsTypes = [
@@ -32,6 +34,7 @@ export const ComponentsTypes = [
   TextType,
   LoadingModalType,
   FormModalType,
+  FragmentType,
 ];
 
 export const ComponentEventsTypes = [

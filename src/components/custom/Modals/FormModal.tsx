@@ -1,3 +1,4 @@
+import { useModals } from "@/components/providers/ModalProvider";
 import { DynamicForm, DynamicFormProps } from "../DynamicForm";
 import { Modal, ModalProps } from "../Modal";
 
@@ -5,10 +6,16 @@ type FormModalProps = ModalProps &
   Omit<DynamicFormProps, "className"> & { classNameForm?: string };
 
 export const FormModal = (props: FormModalProps) => {
+  const { closeModal } = useModals();
+  const handleSummit = (data, error) => {
+    props.onSubmit?.(data, error);
+    closeModal(props.id);
+  };
   return (
     <Modal {...props}>
       <DynamicForm
         {...props}
+        onSubmit={handleSummit}
         className={props.classNameForm}
         //className="md:grid-cols-2 md:2xl:grid-cols-3 md:3xl:grid-cols-4"
         /*         schema={carSchema}

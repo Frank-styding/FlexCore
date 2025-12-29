@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { IconPicker } from "./IconPicker";
 
 export type FieldConfig = {
@@ -118,10 +118,19 @@ export function DynamicForm({
   const [show, setShow] = useState(false);
 
   const form = useForm({
-    resolver: zodResolver(schema),
+    resolver: schema ? zodResolver(schema) : undefined,
     defaultValues: defaultValues,
     mode: "onChange",
   });
+
+  const defaultValuesJson = JSON.stringify(defaultValues);
+
+  useEffect(() => {
+    if (defaultValues) {
+      form.reset(defaultValues);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultValuesJson, form]);
 
   const handleOnChange = () => {
     setShow(JSON.stringify(form.getValues()) != JSON.stringify(defaultValues));

@@ -1,4 +1,4 @@
-import { BuildFuncs, Component, ComponentEvent, Context } from "./Component";
+import { Component, ComponentEvent, Context } from "./Component";
 
 export type NavigationRoute = {
   id: string;
@@ -31,7 +31,6 @@ type NavigationData = {
   config?: NavigationConfig;
   routes: NavigationRoute[];
   onNavigate: ComponentEvent;
-  buildFuncs: BuildFuncs;
   context?: Context;
 };
 
@@ -42,7 +41,6 @@ export const Navigation: NavigationFactory = ({
   config,
   routes,
   onNavigate,
-  buildFuncs,
   context,
 }) => {
   return {
@@ -57,7 +55,6 @@ export const Navigation: NavigationFactory = ({
       showBreadcrumb: true,
     },
     events: { onNavigate },
-    buildFuncs,
   };
 };
 
@@ -83,7 +80,6 @@ interface NavigationProps {
   routes: NavigationRoute[];
   config?: NavigationConfig;
   onNavigate?: ComponentEvent;
-  buildFuncs?: BuildFuncs;
   context?: Context;
 }
 

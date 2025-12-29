@@ -1,25 +1,30 @@
-import { BuildFuncs, Component, Context } from "./Component";
+import { Component, ComponentEvent, Context } from "./Component";
 
 // 1. Configuración
 type LoadingModalConfig = {
   className?: string;
+  title?: string;
+  description?: string;
+  disableEscape?: boolean;
+  disableOutside?: boolean;
 };
 
-type LoadingModalData = {
+interface LoadingModalProps {
   id: string;
   config?: LoadingModalConfig;
-  buildFuncs: BuildFuncs;
+  onOpen?: ComponentEvent;
+  onClose?: ComponentEvent;
   context?: Context;
-};
-
-type LoadingModalFactory = (data: LoadingModalData) => Component;
+}
+type LoadingModalFactory = (data: LoadingModalProps) => Component;
 
 // 3. Factory
 export const LoadingModal: LoadingModalFactory = ({
   id,
   config,
-  buildFuncs,
   context,
+  onOpen,
+  onClose,
 }) => {
   return {
     id,
@@ -27,21 +32,27 @@ export const LoadingModal: LoadingModalFactory = ({
     context,
     data: {},
     config: config ?? {},
-    events: {},
-    buildFuncs,
+    events: { onOpen, onClose },
   };
 };
 
 // 4. Tipos para el Editor
 export const LoadingModalType = `
+
+
 type LoadingModalConfig = {
   className?: string;
+  title?:string;
+  description?:string;
+  disableEscape?:boolean;
+  disableOutside?:boolean;
 };
 
 interface LoadingModalProps {
   id: string;
   config?: LoadingModalConfig;
-  buildFuncs?: BuildFuncs;
+  onOpen?:ComponentEvent;
+  onClose?:ComponentEvent;
   context?: Context;
 }
 

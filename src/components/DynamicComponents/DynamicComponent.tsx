@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 import { Component, Context } from "@/lib/ComponentBuilders/Component";
 import { COMPONENTS } from "./Components";
 import { ReactNode, memo, useId } from "react";
@@ -22,6 +23,10 @@ export const DynamicComponent = memo(
     if (!data.id) {
       // eslint-disable-next-line react-hooks/immutability
       data.id = generatedId;
+    }
+
+    if (typeof data.config.style == "string") {
+      data.config.style = undefined;
     }
 
     return (

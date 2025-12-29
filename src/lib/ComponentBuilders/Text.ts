@@ -1,5 +1,4 @@
 import {
-  BuildFuncs,
   Component,
   ComponentEvent,
   DynamicValue,
@@ -40,7 +39,6 @@ type TextData = {
   config?: TextConfig;
   content?: IComponentData<DynamicValue<string>>; // El contenido del texto
   onClick: ComponentEvent; // Opcional: hacer click en el texto
-  buildFuncs: BuildFuncs;
   context?: Context;
 };
 
@@ -52,7 +50,6 @@ export const CText: TextFactory = ({
   config,
   content,
   onClick,
-  buildFuncs,
   context,
 }) => {
   return {
@@ -62,7 +59,6 @@ export const CText: TextFactory = ({
     data: { content },
     config: config ?? { variant: "p", align: "left" },
     events: { onClick },
-    buildFuncs,
   };
 };
 
@@ -83,7 +79,6 @@ interface TextProps {
   content?: IComponentData<DynamicValue<string>>; // El contenido del texto
   config?: TextConfig;
   onClick?: ComponentEvent;
-  buildFuncs?: BuildFuncs;
   context?: Context;
 }
 

@@ -7,17 +7,22 @@ import { useScriptConnectionActions } from "./useScriptConnectionActions";
 import { z } from "zod";
 
 export const useScriptActions = () => {
-  const { openModal, closeModal } = useModals();
+  const { openModal, closeModal, getModalData } = useModals();
   const { addExecutionLogs, isEditing } = useScriptEditor();
   const { execQuery } = useScriptConnectionActions();
   const context: Context = createContext();
 
-  const handleOpenModal = (id: string) => {
-    openModal(id);
+  const handleOpenModal = (id: string, data: any) => {
+    openModal(id, data);
   };
 
   const handleCloseModal = (id: string) => {
     closeModal(id);
+  };
+
+  const handleGetModalData = (id: string) => {
+    const data = getModalData(id);
+    return data;
   };
 
   // Función auxiliar para transformar funciones en strings legibles
@@ -80,6 +85,7 @@ export const useScriptActions = () => {
     execQuery,
     openModal: handleOpenModal,
     closeModal: handleCloseModal,
+    getModalData: handleGetModalData,
     uuid,
     Editor,
     context,
@@ -87,20 +93,12 @@ export const useScriptActions = () => {
   };
 };
 
-/* export const ActionsTypes = `
-declare function execQuery(query: string, context?: Record<string,any>): Promise<any[]>;
-declare function openModal(id:string):void;
-declare function closeModal(id:string):void;
-declare const context:Context;
-declare function uuid():string;
-declare const Editor:{ log:(...args:any[])=> void }
-`;
- */
 export const ActionsTypes = `
 // --- Tipos existentes ---
 declare function execQuery(query: string, context?: Record<string,any>): Promise<any[]>;
-declare function openModal(id:string):void;
+declare function openModal(id:string,data?:any):void;
 declare function closeModal(id:string):void;
+declare function getModalData(id:string):any;
 declare const context: Context;
 declare function uuid():string;
 declare const Editor: { log:(...args:any[])=> void };
@@ -129,6 +127,7 @@ interface ZodString extends ZodType<string> {
   url(message?: string): ZodString;
   uuid(message?: string): ZodString;
   regex(regex: RegExp, message?: string): ZodString;
+  nonempty:()=>ZodString
 }
 
 interface ZodNumber extends ZodType<number> {
