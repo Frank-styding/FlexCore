@@ -2,6 +2,7 @@ import { Component, Context } from "./Component";
 
 type LayoutConfig = {
   className?: string;
+  style?: Record<string, any>;
 };
 
 type Layout = (
@@ -17,6 +18,7 @@ export const Layout: Layout = (
     id,
     type: "Layout",
     config,
+    data: {},
     context,
     events: {},
     buildFuncs: {},
@@ -27,6 +29,7 @@ export const Layout: Layout = (
 export const LayoutType = `
 type LayoutConfig = {
   className?: string;
+  style?: Record<string,any>;
 };
 
 type Layout = (

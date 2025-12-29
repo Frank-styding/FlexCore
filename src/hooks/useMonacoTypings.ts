@@ -30,8 +30,11 @@ export const useMonacoTypings = ({
       moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
       allowJs: true,
       checkJs: true,
-      noLib: true, // Importante: usaremos nuestras propias libs
+      noLib: false, // Importante: usaremos nuestras propias libs
       ...compilerOptions,
+      strict: false,
+      alwaysStrict: false,
+      strictNullChecks: false, // Ayuda si TS se queja de posibles 'undefined'
     });
   };
 

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useState, useEffect, useId, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
@@ -15,9 +16,11 @@ export const usePageViewer = () => {
   const params = useParams();
   const dispatch = useAppDispatch();
   const { openModal } = useModals();
-  const { setJsCode, setSqlCode, sqlCode, jsCode, isEditing, setIsEditing } =
+
+  // Extraemos las acciones del editor
+  const { setJsCode, setSqlCode, jsCode, sqlCode, isEditing, setIsEditing } =
     useScriptEditor();
-  // IDs
+
   const loadingId = useId();
   const pageId = params.pageId as string;
   const dashboardId = params.dashboardId as string;
@@ -27,9 +30,7 @@ export const usePageViewer = () => {
   const [componentStruct, setComponentStruct] = useState<Component | null>(
     null
   );
-  /*   const [isEditing, setIsEditing] = useState(false); */
   const [isRunningScript, setIsRunningScript] = useState(false);
-  const [isFetchingContent, setIsFetchingContent] = useState(false);
 
   // --- 3. REDUX SELECTORS ---
   const activePage = useAppSelector((state) =>
@@ -38,58 +39,62 @@ export const usePageViewer = () => {
 
   const jsScript = activePage?.jsScript;
   const sqlScript = activePage?.sqlScript;
+  // isContentReady nos dice si Redux ya tiene los datos completos (js y sql)
   const isContentReady = activePage?.isLoaded;
 
   // --- 4. GESTIÓN DE CONTEXTO (REF PATTERN) ---
   const scriptContext = useScriptActions();
   const scriptContextRef = useRef(scriptContext);
 
-  useEffect(() => {
-    scriptContextRef.current = scriptContext;
-  }, [scriptContext]);
+  // Mantenemos la ref actualizada sin disparar re-renders en el efecto de runScript
+  scriptContextRef.current = scriptContext;
 
-  // --- 5. EFECTO: REDIRECCIÓN DE SEGURIDAD ---
+  // --- 5. REDIRECCIÓN DE SEGURIDAD ---
   useEffect(() => {
-    if (!pageId) {
+    if (!pageId && dashboardId) {
       router.replace(`/dashboard/${dashboardId}`);
     }
   }, [pageId, dashboardId, router]);
 
-  // --- 6. EFECTO: DATA FETCHING (LAZY LOAD) ---
+  // --- 6. DATA FETCHING (Optimizado con Ref) ---
+  // Usamos una ref (lastFetchedPageId) en lugar de booleano para soportar cambios de página
+  const lastFetchedPageId = useRef<string | null>(null);
+
   useEffect(() => {
-    if (pageId && !isContentReady && !isFetchingContent) {
-      setIsFetchingContent(true);
+    // Solo disparamos el fetch si:
+    // 1. Tenemos ID.
+    // 2. Redux dice que NO está listo (isLoaded = false).
+    // 3. NO hemos intentado cargar este ID en este montaje especifico.
+    if (pageId && !isContentReady && lastFetchedPageId.current !== pageId) {
+      lastFetchedPageId.current = pageId; // Marcamos INMEDIATAMENTE para bloquear reintentos
+
       dispatch(fetchPageContent(pageId))
         .unwrap()
-        .catch((err) => console.log("Error fetching page content:", err))
-        .finally(() => setIsFetchingContent(false));
+        .catch((err) => {
+          console.error("Error fetching page content:", err);
+          // Opcional: Si quieres permitir reintentos manuales en el futuro, podrías limpiar la ref aquí.
+        });
     }
-  }, [pageId, isContentReady, isFetchingContent, dispatch]);
+  }, [pageId, isContentReady, dispatch]);
 
-  // --- 7. EFECTO: EJECUCIÓN DE SCRIPT (SIN CACHÉ) ---
+  // --- 7. EFECTO: EJECUCIÓN DE SCRIPT ---
   useEffect(() => {
     let isMounted = true;
 
-    // A. Validaciones de salida temprana
-    if (!pageId || !isContentReady) {
-      setComponentStruct(null);
-      return;
-    }
+    // A. Validaciones iniciales
+    if (!pageId || !isContentReady) return;
 
+    // B. Si no hay script, limpiamos todo y aseguramos apagar el loading
     if (!jsScript || jsScript.trim() === "") {
       setComponentStruct(null);
-      setJsCode("");
-      setSqlCode("");
+      setIsRunningScript(false);
       return;
     }
 
-    // B. Sincronizar Editor
-    setJsCode(jsScript);
-    setSqlCode(sqlScript ?? "");
-
-    // C. EJECUCIÓN DIRECTA
+    // C. Ejecución
     setIsRunningScript(true);
 
+    // NOTA: Pasamos los scripts directamente de Redux, NO usamos setJsCode (eso causaba el loop)
     runScript(jsScript, sqlScript || "", scriptContextRef.current)
       .then(({ result }) => {
         if (isMounted) {
@@ -107,27 +112,31 @@ export const usePageViewer = () => {
     return () => {
       isMounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageId, isContentReady, jsScript, sqlScript]);
 
-  // --- 8. ESTADO CALCULADO ---
-  const isLoading = isFetchingContent || isRunningScript;
+  // --- 8. HANDLERS ---
 
-  // --- 9. HANDLERS ---
+  // Sincronizamos el Editor Global SOLO cuando el usuario decide editar manualmente
+  const handleOnOpenEditor = useCallback(() => {
+    if (jsScript) setJsCode(jsScript);
+    if (sqlScript) setSqlCode(sqlScript || "");
+    setIsEditing(true);
+  }, [jsScript, sqlScript, setJsCode, setSqlCode, setIsEditing]);
+
   const handleConfigure = useCallback(() => {
     openModal("213123123_editor_modal");
   }, [openModal]);
 
   const handleOnCloseEditor = useCallback(() => {
     setIsEditing(false);
-  }, []);
+  }, [setIsEditing]);
 
-  const handleOnOpenEditor = useCallback(() => {
-    setIsEditing(true);
-  }, []);
   const onSave = useCallback(() => {
     savePage(jsCode, sqlCode);
-  }, [jsCode, sqlCode]);
+  }, [jsCode, sqlCode, savePage]);
+
+  // --- 9. ESTADO CALCULADO ---
+  const isLoading = !isContentReady || isRunningScript;
 
   return {
     componentStruct,

@@ -1,51 +1,33 @@
 /* eslint-disable react-hooks/immutability */
 import { Button } from "@/components/ui/button";
+import { useDynamicValue } from "@/components/DynamicComponents/useDynamicValue";
 import { Component, Context } from "@/lib/ComponentBuilders/Component";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useComponentRegistration } from "../useComponentRegistration";
 
 export const DynamicButton = ({
   config,
   events,
   context,
   id,
+  data,
 }: Component & { context: Context }) => {
-  const [label, setLabelState] = useState(config?.label);
-  // 2. Crear una referencia que siempre tendrá el valor real
-  const labelRef = useRef(config?.label);
+  const [labelRef, setLabel, label] = useDynamicValue(context, data.label, "");
 
   const handleOnClick = (e: any) => {
     events.onClick?.(e, context);
   };
 
-  // Función interna para actualizar ambos (Estado y Referencia)
-  const updateLabel = (newValue: string) => {
-    labelRef.current = newValue; // Actualizamos la referencia (instantáneo)
-    setLabelState(newValue); // Actualizamos el estado (renderizado)
-  };
+  const exposedMethods = useMemo(
+    () => ({
+      setLabel: (value: string) => setLabel(value),
+      getLabel: () => labelRef.current,
+    }),
+    [setLabel, labelRef]
+  ); // Dependencias estables
 
-  useEffect(() => {
-    if (!context) return;
-    if (!context.comp) {
-      context.comp = {};
-    }
-
-    context.comp[id] = {
-      setLabel: (value: any) => {
-        updateLabel(value); // Usamos nuestra función wrapper
-      },
-      getLabel: () => {
-        // 3. AQUÍ ESTÁ LA MAGIA: Leemos de la referencia, no del estado
-        return labelRef.current;
-      },
-    };
-
-    return () => {
-      if (context.comp && context.comp[id]) {
-        delete context.comp[id];
-      }
-    };
-    // Ya no necesitamos 'label' en las dependencias, evitando bucles infinitos
-  }, [context, id]);
+  // 2. Usamos el Hook para registrar en context.comp.btn[id]
+  useComponentRegistration(context, "btn", id, exposedMethods);
 
   return (
     <Button {...config} onClick={handleOnClick}>

@@ -1,7 +1,10 @@
 import { useMemo } from "react";
 import { TypeBuilder } from "@/lib/monaco/TypeBuilder";
 import { ActionsTypes } from "@/hooks/useScriptActions";
-import { ComponentTypes } from "@/lib/ComponentBuilders/Builders";
+import {
+  ComponentEventsTypes,
+  ComponentsTypes,
+} from "@/lib/ComponentBuilders/Builders";
 import { ConnectionActionsTypes } from "./useScriptConnectionActions";
 
 export const useCodeDefinitions = ({
@@ -33,7 +36,8 @@ export const useCodeDefinitions = ({
     // 2. Global Libs (Tus acciones, Componentes, etc)
     const globalBuilder = new TypeBuilder()
       .addCustom(ActionsTypes)
-      .addCustom(ComponentTypes);
+      .addCustom(ComponentEventsTypes)
+      .addCustom(ComponentsTypes);
 
     defs.push({
       path: "globals.d.ts",

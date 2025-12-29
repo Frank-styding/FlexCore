@@ -2,6 +2,7 @@
 "use client";
 
 import { DynamicComponent } from "@/components/DynamicComponents/DynamicComponent";
+import { notFound } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { usePublicPageViewer } from "./usePublicPageViewer";
 
@@ -9,11 +10,7 @@ export default function PublicPageView() {
   const { componentStruct, isLoading, isAccessDenied } = usePublicPageViewer();
 
   if (isAccessDenied) {
-    return (
-      <div className="flex h-screen items-center justify-center text-muted-foreground">
-        No tiene acceso a esta pagina
-      </div>
-    );
+    notFound();
   }
 
   if (isLoading) {

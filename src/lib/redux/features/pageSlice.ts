@@ -10,28 +10,26 @@ interface PageState {
 
 const initialState: PageState = {
   byId: {},
-  /*   activePage: null, */
   status: "idle",
 };
 
 // --- THUNKS ---
 
-// 1. Fetch Pages
+// 1. Fetch Pages (Trae todo)
 export const fetchPages = createAsyncThunk("pages/fetchPages", async () => {
-  // Supabase filtrará automáticamente por user_id si tienes RLS activado
   const { data, error } = await systemSupabase.from("pages").select("*");
   if (error) throw error;
   return data;
 });
 
-// 2. Add Page (ACTUALIZADO para incluir user_id)
+// 2. Add Page
 export const addPageRemote = createAsyncThunk(
   "pages/addPage",
   async ({
     dashboardId,
     name,
     icon,
-    userId, // <--- NUEVO PARAMETRO REQUERIDO
+    userId,
   }: {
     dashboardId: string;
     name: string;
@@ -42,7 +40,7 @@ export const addPageRemote = createAsyncThunk(
       .from("pages")
       .insert({
         dashboard_id: dashboardId,
-        user_id: userId, // <--- Mapeo a la nueva columna de la BD
+        user_id: userId,
         name,
         icon,
         js_script: "",
@@ -61,8 +59,6 @@ export const updatePageRemote = createAsyncThunk(
   "pages/updatePage",
   async (payload: { id: string; updates: Partial<Page> }) => {
     const dbUpdates: any = {};
-
-    // Mapeo de camelCase (Frontend) a snake_case (Base de Datos)
     if (payload.updates.name) dbUpdates.name = payload.updates.name;
     if (payload.updates.jsScript !== undefined)
       dbUpdates.js_script = payload.updates.jsScript;
@@ -71,7 +67,6 @@ export const updatePageRemote = createAsyncThunk(
     if (payload.updates.isPublic !== undefined) {
       dbUpdates.is_public = payload.updates.isPublic;
     }
-    // Nota: No actualizamos dashboard_id ni user_id usualmente en un update simple
 
     const { data, error } = await systemSupabase
       .from("pages")
@@ -81,55 +76,6 @@ export const updatePageRemote = createAsyncThunk(
       .single();
 
     if (error) throw error;
-    return data;
-  }
-);
-// 1. Fetch Pages LIST (LIGERO - Solo metadatos para el Sidebar)
-export const fetchPagesList = createAsyncThunk(
-  "pages/fetchPagesList",
-  async (userId?: string) => {
-    let query = systemSupabase
-      .from("pages")
-      // IMPORTANTE: NO pedimos js_script ni sql_script aquí
-      .select("id, name, icon, dashboard_id, user_id");
-
-    if (userId) {
-      query = query.eq("user_id", userId);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
-  }
-);
-
-// 2. Fetch Page CONTENT (PESADO - Solo cuando se selecciona la página)
-export const fetchPageContent = createAsyncThunk(
-  "pages/fetchPageContent",
-  async (pageId: string) => {
-    const { data, error } = await systemSupabase
-      .from("pages")
-      .select("id, js_script, sql_script") // Solo traemos los scripts
-      .eq("id", pageId)
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-);
-
-// Nuevo Thunk para cargar página completa con config (seguro para públicos)
-
-export const fetchPageWithConfig = createAsyncThunk(
-  "pages/fetchPageWithConfig",
-  async (pageId: string) => {
-    const { data, error } = await systemSupabase
-      .rpc("get_public_page_details", { p_page_id: pageId })
-      .maybeSingle(); // <--- CAMBIO IMPORTANTE: Usar maybeSingle
-
-    if (error) throw error;
-
-    // Si es privada/no existe, data será null. Eso está bien, el hook lo manejará.
     return data;
   }
 );
@@ -144,58 +90,99 @@ export const deletePageRemote = createAsyncThunk(
   }
 );
 
+// 5. Fetch Page CONTENT (Específico)
+export const fetchPageContent = createAsyncThunk(
+  "pages/fetchPageContent",
+  async (pageId: string) => {
+    const { data, error } = await systemSupabase
+      .from("pages")
+      .select("id, js_script, sql_script")
+      .eq("id", pageId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+);
+export const fetchPageWithConfig = createAsyncThunk(
+  "pages/fetchPageWithConfig",
+  async (pageId: string) => {
+    const { data, error } = await systemSupabase
+      .rpc("get_public_page_details", { p_page_id: pageId })
+      .maybeSingle(); // <--- CAMBIO IMPORTANTE: Usar maybeSingle
+
+    if (error) throw error;
+
+    // Si es privada/no existe, data será null. Eso está bien, el hook lo manejará.
+    return data;
+  }
+);
+
 export const pageSlice = createSlice({
   name: "pages",
   initialState,
-  reducers: {
-    /*     selectPage: (state, action: PayloadAction<{ id: string }>) => {
-      state.activePage = action.payload.id;
-    }, */
-  },
+  reducers: {},
   extraReducers: (builder) => {
     // ----------------------------------------------------------------
-    // 1. FETCH PAGES (Manejo completo de estado)
+    // 1. FETCH PAGES (CORREGIDO: MERGE STRATEGY)
     // ----------------------------------------------------------------
-
-    // CASO PENDING (Cargando)
     builder.addCase(fetchPages.pending, (state) => {
       state.status = "loading";
     });
 
-    // CASO FULFILLED (Éxito)
     builder.addCase(fetchPages.fulfilled, (state, action) => {
-      state.status = "succeeded"; // <--- ACTUALIZAR AQUÍ
+      state.status = "succeeded";
 
-      const pagesMap: Record<string, Page> = {};
+      // Iteramos sobre los datos nuevos
       action.payload.forEach((dbPage: any) => {
-        pagesMap[dbPage.id] = {
+        // Buscamos si ya existe una versión en memoria
+        const existingPage = state.byId[dbPage.id];
+
+        state.byId[dbPage.id] = {
           id: dbPage.id,
           dashboardId: dbPage.dashboard_id,
           name: dbPage.name,
           icon: dbPage.icon as IconName,
-          jsScript: dbPage.js_script,
-          sqlScript: dbPage.sql_script,
           isPublic: dbPage.is_public,
+
+          // IMPORTANTE:
+          // Si ya teníamos scripts cargados y loaded=true, los mantenemos.
+          // Si no, usamos lo que viene de la BD.
+          jsScript: existingPage?.jsScript ?? dbPage.js_script ?? "",
+          sqlScript: existingPage?.sqlScript ?? dbPage.sql_script ?? "",
+
+          // Si fetchPages trae 'select("*")', técnicamente ya está cargado.
+          // Pero para estar seguros, si ya estaba loaded, lo dejamos true.
+          isLoaded: existingPage?.isLoaded || true,
         };
       });
-      state.byId = pagesMap;
     });
 
-    // CASO REJECTED (Error)
     builder.addCase(fetchPages.rejected, (state, action) => {
       state.status = "failed";
       console.error("Error fetching pages:", action.error);
     });
 
     // ----------------------------------------------------------------
-    // OTRAS ACCIONES (Add, Update, Delete)
+    // 2. FETCH PAGE CONTENT (CORREGIDO: SAFETY CHECK)
     // ----------------------------------------------------------------
-    // Nota: Usualmente para estas acciones no cambiamos el 'status' global
-    // a "loading" para no mostrar un spinner de carga completa,
-    // pero si quisieras bloquear la UI, deberías agregar sus .pending y .rejected también.
+    builder.addCase(fetchPageContent.fulfilled, (state, action) => {
+      const { id, js_script, sql_script } = action.payload;
 
+      // Si la página ya existe en la lista, actualizamos sus scripts y la marcamos loaded
+      if (state.byId[id]) {
+        state.byId[id].jsScript = js_script;
+        state.byId[id].sqlScript = sql_script;
+        state.byId[id].isLoaded = true; // <--- ESTA ES LA CLAVE
+      }
+      // Si por alguna razón extraña llega el contenido antes que la lista (Deep Linking),
+      // podríamos crear un entry parcial, pero es raro en tu flujo actual.
+    });
+
+    // ----------------------------------------------------------------
+    // OTRAS ACCIONES
+    // ----------------------------------------------------------------
     builder.addCase(addPageRemote.fulfilled, (state, action) => {
-      // Opcional: state.status = "succeeded";
       const dbPage = action.payload;
       state.byId[dbPage.id] = {
         id: dbPage.id,
@@ -205,8 +192,8 @@ export const pageSlice = createSlice({
         jsScript: dbPage.js_script,
         sqlScript: dbPage.sql_script,
         isPublic: dbPage.is_public,
+        isLoaded: true, // Una página nueva creada ya tiene sus datos (vacíos) listos
       };
-      /*       state.activePage = dbPage.id; */
     });
 
     builder.addCase(updatePageRemote.fulfilled, (state, action) => {
@@ -224,16 +211,9 @@ export const pageSlice = createSlice({
 
     builder.addCase(deletePageRemote.fulfilled, (state, action) => {
       delete state.byId[action.payload];
-      /*       if (state.activePage === action.payload) state.activePage = null; */
     });
-    builder.addCase(fetchPageContent.fulfilled, (state, action) => {
-      const { id, js_script, sql_script } = action.payload;
-      if (state.byId[id]) {
-        state.byId[id].jsScript = js_script;
-        state.byId[id].sqlScript = sql_script;
-        state.byId[id].isLoaded = true; // Marcamos como completo
-      }
-    });
+
+    // Limpieza al borrar dashboard
     builder.addCase(
       "dashboards/deleteDashboard/fulfilled",
       (state, action: any) => {
@@ -243,9 +223,6 @@ export const pageSlice = createSlice({
             delete state.byId[pageId];
           }
         });
-        /*         if (state.activePage && !state.byId[state.activePage]) {
-          state.activePage = null;
-        } */
       }
     );
   },
