@@ -5,6 +5,7 @@ import { Component, Context } from "@/lib/ComponentBuilders/Component";
 import { useMemo } from "react";
 import { useComponentRegistration } from "../useComponentRegistration";
 import { useScriptError } from "@/hooks/useScriptError";
+import { DynamicIcon } from "@/components/custom/DynamicIcon";
 
 export const DynamicButton = ({
   config,
@@ -30,9 +31,10 @@ export const DynamicButton = ({
 
   // 2. Usamos el Hook para registrar en context.comp.btn[id]
   useComponentRegistration(context, "btn", id, exposedMethods);
-
+  console.log(config.icon);
   return (
     <Button {...config} onClick={handleOnClick}>
+      {config.icon && <DynamicIcon name={config.icon} />}
       {label}
     </Button>
   );
