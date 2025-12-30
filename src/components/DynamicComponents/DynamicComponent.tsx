@@ -8,8 +8,6 @@ import { v4 as uuid } from "uuid";
 export const DynamicComponent = memo(
   ({ data, context }: { data?: Component; context?: Context }) => {
     // 1. Hook incondicional al inicio
-    const generatedId = useId();
-
     if (!data) return null;
 
     const TargetComponent = COMPONENTS[data.type] as
@@ -22,11 +20,13 @@ export const DynamicComponent = memo(
     // eslint-disable-next-line react-hooks/immutability
     if (!data.id) {
       // eslint-disable-next-line react-hooks/immutability
-      data.id = generatedId;
+      data.id = uuid();
     }
 
-    if (typeof data.config.style == "string") {
-      data.config.style = undefined;
+    if (data.config) {
+      if (typeof data.config.style == "string") {
+        data.config.style = undefined;
+      }
     }
 
     return (

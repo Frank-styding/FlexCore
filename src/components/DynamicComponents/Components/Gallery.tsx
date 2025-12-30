@@ -51,6 +51,13 @@ type GalleryProps = Component & {
     searchable?: boolean;
     cardSize?: string;
     height?: string;
+    style?: {
+      gallery?: Record<string, any>;
+      title?: Record<string, any>;
+      description?: Record<string, any>;
+      img?: Record<string, any>;
+      card?: Record<string, any>;
+    };
     // Configuraciones nuevas
     addButton?: {
       label: string;
@@ -138,6 +145,11 @@ export const DynamicGallery = ({
       className={`flex flex-col gap-6 min-h-0 overflow-hidden ${containerHeight} ${
         config.className || ""
       }`}
+      style={
+        typeof config.style?.gallery == "object"
+          ? config.style.gallery
+          : undefined
+      }
     >
       {/* --- HEADER: Buscador + Botón Agregar --- */}
       {(config.searchable !== false || config.addButton) && (
@@ -191,6 +203,11 @@ export const DynamicGallery = ({
                       flex-none shrink-0 
                       ${sizeClass}
                     `}
+                    style={
+                      typeof config.style?.card == "object"
+                        ? config.style.card
+                        : undefined
+                    }
                     onClick={() => handleCardClick(item)}
                   >
                     {/* ... (Contenido de la card igual que antes) ... */}
@@ -199,6 +216,11 @@ export const DynamicGallery = ({
                         <img
                           src={item.imageUrl}
                           alt={item.title}
+                          style={
+                            typeof item.style?.img == "object"
+                              ? item.style.img
+                              : undefined
+                          }
                           className="size-[8rem] object-cover transition-transform duration-500 group-hover:scale-110 rounded-md"
                         />
                       )}
@@ -207,11 +229,23 @@ export const DynamicGallery = ({
                       <h3
                         className="font-semibold text-base leading-tight truncate text-foreground group-hover:text-primary transition-colors"
                         title={item.title}
+                        style={
+                          typeof config.style?.title == "object"
+                            ? config.style.title
+                            : undefined
+                        }
                       >
                         {item.title}
                       </h3>
                       {item.description && (
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-3 leading-snug break-words">
+                        <p
+                          style={
+                            typeof config.style?.description == "object"
+                              ? config.style.description
+                              : undefined
+                          }
+                          className="text-sm text-muted-foreground mt-1 line-clamp-3 leading-snug break-words"
+                        >
                           {item.description}
                         </p>
                       )}

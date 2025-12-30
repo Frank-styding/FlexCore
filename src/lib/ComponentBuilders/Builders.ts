@@ -9,6 +9,7 @@ import { CText, TextEventsType, TextType } from "./Text";
 import { LoadingModal, LoadingModalType } from "./LoaddingModal";
 import { FormModal, FormModalType } from "./FormModal";
 import { Fragment, FragmentType } from "./Fragment";
+import { Form, FormType } from "./Form";
 
 export const ComponentsBuilders = {
   Button,
@@ -21,6 +22,7 @@ export const ComponentsBuilders = {
   LoadingModal,
   FormModal,
   Fragment,
+  Form,
 };
 
 export const ComponentsTypes = [
@@ -35,6 +37,7 @@ export const ComponentsTypes = [
   LoadingModalType,
   FormModalType,
   FragmentType,
+  FormType,
 ];
 
 export const ComponentEventsTypes = [

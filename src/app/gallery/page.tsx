@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { FieldConfig } from "@/components/custom/DynamicForm";
 import { ConfirmModal } from "@/components/custom/Modals/ConfirmModal";

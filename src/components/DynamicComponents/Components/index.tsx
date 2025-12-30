@@ -8,6 +8,7 @@ import { DynamicText } from "./Text";
 import { DynamicLoadingModal } from "./LoadingModal";
 import { DynamicFormModal } from "./FormModal";
 import { DynamicFragment } from "./Fragment";
+import { DynamicForm } from "./Form";
 
 export const COMPONENTS = {
   Button: DynamicButton,
@@ -20,4 +21,5 @@ export const COMPONENTS = {
   LoadingModal: DynamicLoadingModal,
   FormModal: DynamicFormModal,
   Fragment: DynamicFragment,
+  Form: DynamicForm,
 };

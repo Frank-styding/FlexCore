@@ -20,6 +20,7 @@ export const useScriptConnectionActions = () => {
   // 2. Ejecutar Query (Usa la instancia global)
   const execQuery = useCallback(
     async (query: string, context?: Record<string, any>) => {
+      if (!query) return [];
       if (!activeAdapter || !activeAdapter.isConnected()) {
         const errorMsg =
           "No hay una conexión activa. Verifica la configuración.";

@@ -136,6 +136,7 @@ type GalleryItem = {
   title: string;
   description?: string;
   imageUrl: string;
+
 };
 
 type ContextMenuItem = {
@@ -162,6 +163,13 @@ interface GalleryProps {
     searchable?: boolean;
     cardSize?: string;
     height?: string;
+    style?: {
+      gallery?:Record<string,any>;
+      title?: Record<string, any>;
+      description?: Record<string, any>;
+      img?: Record<string, any>;
+      card?: Record<string, any>;
+    };
   };
 
   // Acciones

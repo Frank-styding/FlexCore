@@ -131,7 +131,7 @@ export const DynamicTable = ({
     }
 
     // 2. Columnas de Datos
-    const dataCols = data.columns.map((col) => ({
+    const dataCols = (data?.columns ?? []).map((col) => ({
       accessorKey: col.accessorKey,
       header: ({ column }: any) => {
         if (col.enableSorting) {

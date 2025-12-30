@@ -3,6 +3,7 @@ import { Component, Context } from "@/lib/ComponentBuilders/Component";
 import { useEffect, useMemo, useState } from "react";
 import { useComponentRegistration } from "../useComponentRegistration";
 import { cn } from "@/lib/utils";
+import { v4 as uuid } from "uuid";
 
 import {
   Breadcrumb,
@@ -234,6 +235,7 @@ export const DynamicNavigation = ({
         className="animate-in fade-in zoom-in-95 duration-200 h-full"
       >
         {activeNode?.children.map((item) => {
+          item.id ??= uuid();
           return (
             <DynamicComponent data={item} key={item.id} context={context} />
           );
