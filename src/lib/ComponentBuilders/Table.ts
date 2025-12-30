@@ -16,27 +16,28 @@ export type TableColumn = {
 type TableConfig = {
   className?: string;
   pageSize?: number;
-  enableRowSelection?: boolean; // Nuevo: Activar checkboxes
-  enableExport?: boolean; // Nuevo: Activar botón exportar
+  enableRowSelection?: boolean;
+  enableExport?: boolean;
 };
 
 export type TableEvent = {
   setData: (data: any[]) => void;
   getData: () => any[];
   getSelectedRows: () => any[];
+  reload: () => void; // NUEVO: Método reload
 };
 
 type TableData = {
   id: string;
   config?: TableConfig;
-  columns: TableColumn[];
+  // CAMBIO: Ahora columns es dinámico
+  columns: IComponentData<DynamicValue<TableColumn[]>>;
   data?: IComponentData<DynamicValue<any[]>>;
-  onRowClick: ComponentEvent;
 
-  // Nuevos Eventos de Acción
-  onEdit: ComponentEvent; // (item) => void
-  onDelete: ComponentEvent; // (item) => void
-  onBulkDelete: ComponentEvent; // (items[]) => void
+  onRowClick: ComponentEvent;
+  onEdit: ComponentEvent;
+  onDelete: ComponentEvent;
+  onBulkDelete: ComponentEvent;
 
   context?: Context;
 };
@@ -58,17 +59,18 @@ export const Table: TableFactory = ({
     id,
     type: "Table",
     context,
+    // Pasamos tanto columns como items dentro de data para ser procesados
     data: { columns, items: data },
     config: config ?? {
       pageSize: 5,
       enableRowSelection: false,
       enableExport: true,
     },
-    events: { onRowClick, onEdit, onDelete, onBulkDelete }, // Pasamos los nuevos eventos
+    events: { onRowClick, onEdit, onDelete, onBulkDelete },
   };
 };
 
-// String Types para el Editor
+// --- String Types para el Editor (Actualizados) ---
 export const TableType = `
 type TableColumn = {
   accessorKey: string;
@@ -86,7 +88,8 @@ type TableConfig = {
 
 interface TableProps {
   id: string;
-  columns: TableColumn[];
+  // CAMBIO: Definición dinámica para el editor
+  columns: IComponentData<DynamicValue<TableColumn[]>>;
   data?: IComponentData<DynamicValue<any[]>>;
   config?: TableConfig;
   onRowClick?: ComponentEvent;
@@ -108,6 +111,7 @@ type TableEvent = {
   setData: (data: any[]) => void;
   getData: () => any[];
   getSelectedRows: () => any[];
+  reload: () => void;
 };
 
 interface TableMap {

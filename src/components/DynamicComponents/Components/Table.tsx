@@ -24,7 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox"; // Importamos Checkbox
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   ChevronLeft,
   ChevronRight,
@@ -32,20 +32,13 @@ import {
   Download,
   Trash2,
   Pencil,
-  MoreHorizontal,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 type TableProps = Component & {
   context: Context;
   data: {
-    columns: { accessorKey: string; header: string; enableSorting?: boolean }[];
+    // Recibimos los wrappers dinámicos
+    columns: any;
     items: any;
   };
   config: {
@@ -63,14 +56,22 @@ export const DynamicTable = ({
   id,
   data,
 }: TableProps) => {
-  const [itemsRef, setItems, tableData] = useDynamicValue(
+  // 1. Hook para ITEMS (Data) -> Obtenemos reloadItems
+  const [itemsRef, setItems, tableData, reloadItems] = useDynamicValue(
     context,
     data.items,
     []
   );
 
+  // 2. Hook para COLUMNAS (Nuevo) -> Las columnas ahora son dinámicas
+  const [colsRef, setCols, tableColumns] = useDynamicValue(
+    context,
+    data.columns,
+    []
+  );
+
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [rowSelection, setRowSelection] = useState({}); // Estado para selección
+  const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: config.pageSize || 5,
@@ -80,13 +81,14 @@ export const DynamicTable = ({
   const handleExport = () => {
     if (!Array.isArray(tableData) || tableData.length === 0) return;
 
-    // Obtenemos headers
-    const headers = data.columns.map((c) => c.header).join(",");
-    const keys = data.columns.map((c) => c.accessorKey);
+    // Usamos tableColumns en lugar de data.columns estático
+    const headers = tableColumns.map((c: any) => c.header).join(",");
+    const keys = tableColumns.map((c: any) => c.accessorKey);
 
-    // Convertimos filas
     const rows = tableData
-      .map((row) => keys.map((k) => JSON.stringify(row[k] || "")).join(","))
+      .map((row) =>
+        keys.map((k: any) => JSON.stringify(row[k] || "")).join(",")
+      )
       .join("\n");
 
     const csvContent = "data:text/csv;charset=utf-8," + headers + "\n" + rows;
@@ -103,7 +105,7 @@ export const DynamicTable = ({
   const columns = useMemo<ColumnDef<any>[]>(() => {
     const baseCols: ColumnDef<any>[] = [];
 
-    // 1. Columna de Checkbox (Si está activa)
+    // Columna de Checkbox
     if (config.enableRowSelection) {
       baseCols.push({
         id: "select",
@@ -121,7 +123,7 @@ export const DynamicTable = ({
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(!!value)}
             aria-label="Select row"
-            onClick={(e) => e.stopPropagation()} // Evitar click en fila
+            onClick={(e) => e.stopPropagation()}
           />
         ),
         enableSorting: false,
@@ -130,30 +132,32 @@ export const DynamicTable = ({
       });
     }
 
-    // 2. Columnas de Datos
-    const dataCols = (data?.columns ?? []).map((col) => ({
-      accessorKey: col.accessorKey,
-      header: ({ column }: any) => {
-        if (col.enableSorting) {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-              className="-ml-4 h-8 data-[state=open]:bg-accent"
-            >
-              {col.header}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          );
-        }
-        return col.header;
-      },
-    }));
+    // Columnas de Datos (Usamos tableColumns resuelto por el hook)
+    const dataCols = (Array.isArray(tableColumns) ? tableColumns : []).map(
+      (col: any) => ({
+        accessorKey: col.accessorKey,
+        header: ({ column }: any) => {
+          if (col.enableSorting) {
+            return (
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  column.toggleSorting(column.getIsSorted() === "asc")
+                }
+                className="-ml-4 h-8 data-[state=open]:bg-accent"
+              >
+                {col.header}
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            );
+          }
+          return col.header;
+        },
+      })
+    );
     baseCols.push(...dataCols);
 
-    // 3. Columna de Acciones (Editar/Eliminar)
+    // Columna de Acciones
     if (events.onEdit || events.onDelete) {
       baseCols.push({
         id: "actions",
@@ -194,7 +198,7 @@ export const DynamicTable = ({
     }
 
     return baseCols;
-  }, [data.columns, config.enableRowSelection, events]);
+  }, [tableColumns, config.enableRowSelection, events, context]); // Dependemos de tableColumns
 
   const table = useReactTable({
     data: Array.isArray(tableData) ? tableData : [],
@@ -218,22 +222,26 @@ export const DynamicTable = ({
     () => ({
       setData: (newData: any[]) => {
         setItems(newData);
-        setRowSelection({}); // Limpiamos selección al cambiar datos
+        setRowSelection({});
       },
       getData: () => itemsRef.current,
       getSelectedRows: () =>
         table.getSelectedRowModel().rows.map((r) => r.original),
+      // 3. Exponemos el reload (recarga principalmente los items)
+      reload: () => reloadItems(),
     }),
-    [setItems, itemsRef, table]
+    [setItems, itemsRef, table, reloadItems]
   );
+
   useComponentRegistration(context, "table", id, exposedMethods);
 
+  // Renderizado (Igual que antes, solo asegúrate de usar tableColumns si necesitas leer headers manualmente en export)
   return (
     <div className={cn("w-full flex flex-col gap-4", config.className)}>
-      {/* HEADER BAR: Bulk Actions y Export */}
+      {/* ... El resto del JSX se mantiene igual ... */}
+      {/* Solo asegúrate de copiar el JSX del archivo anterior completo aquí */}
       <div className="flex items-center justify-between min-h-[40px]">
         <div className="flex items-center gap-2">
-          {/* Si hay filas seleccionadas, mostramos la barra de acciones masivas */}
           {selectedRows.length > 0 && events.onBulkDelete && (
             <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
               <span className="text-sm text-muted-foreground border-r pr-3 mr-1">
@@ -245,7 +253,7 @@ export const DynamicTable = ({
                 onClick={() => {
                   const items = selectedRows.map((r) => r.original);
                   events.onBulkDelete?.(items, context);
-                  setRowSelection({}); // Limpiar selección tras acción
+                  setRowSelection({});
                 }}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -255,7 +263,6 @@ export const DynamicTable = ({
           )}
         </div>
 
-        {/* Botón Exportar */}
         {config.enableExport !== false && (
           <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="mr-2 h-4 w-4" />
