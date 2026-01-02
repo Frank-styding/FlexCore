@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useEffect, useId, useRef, useCallback } from "react";
+import { useState, useEffect, useId, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useModalActions } from "@/hooks/useModal";
 import { usePageStore } from "../store/usePageStore";
@@ -8,67 +8,82 @@ import { IEngine } from "@/features/engine/modules";
 import { IComponent } from "@/features/engine/modules/types/component.type";
 
 export const usePageViewer = () => {
-  // --- 1. HOOKS & ROUTING ---
   const loadingId = useId();
   const router = useRouter();
   const params = useParams();
+
   const pageId = params.pageId as string;
   const dashboardId = params.dashboardId as string;
 
   const { openModal } = useModalActions();
-
   const { fetchContent, page, saveCode } = usePageStore(pageId);
   const { isConnected, createEngine, runScript } = useEngine();
   const { sqlCode, jsCode, setJsCode, setSqlCode, setIsEditing, isEditing } =
     useEditor();
 
-  /*   const { setJsCode, setSqlCode, jsCode, sqlCode, isEditing, setIsEditing } =
-    useScriptEditor(); */
-  /* 
-  const { isConnected } = useDBConnection();
-
-  const { isSaving } = usePageEditor(pageId);
- */
   const [componentStruct, setComponentStruct] = useState<IComponent | null>(
     null
   );
 
-  const [isRunningScript, setIsRunningScript] = useState(false);
+  // 1. ESTADO DE SEGUIMIENTO DE TRANSICIÓN
+  const [lastPageId, setLastPageId] = useState<string>(pageId);
 
+  // 2. ESTADO DE EJECUCIÓN
+  const [isRunningScript, setIsRunningScript] = useState(true);
+
+  const [engine, setEngine] = useState<IEngine | null>(null);
+
+  // Inicializar Engine
+  useEffect(() => {
+    setEngine(createEngine());
+  }, []);
+
+  // Redirección
   useEffect(() => {
     if (!pageId && dashboardId) {
       router.replace(`/dashboard/${dashboardId}`);
     }
   }, [pageId, dashboardId, router]);
 
+  // --- DETECCIÓN DE CAMBIO DE PÁGINA ---
+  useEffect(() => {
+    if (pageId !== lastPageId) {
+      setComponentStruct(null);
+      setIsRunningScript(true);
+      setLastPageId(pageId);
+    }
+  }, [pageId, lastPageId]);
+
+  // Fetch de contenido
   useEffect(() => {
     if (pageId && !page?.isLoaded && isConnected) {
       fetchContent();
     }
-  }, [pageId, isConnected]);
+  }, [pageId, isConnected, page?.isLoaded, fetchContent]);
 
-  const [engine, setEngine] = useState<IEngine | null>(null);
-
-  useEffect(() => {
-    setEngine(createEngine());
-  }, []);
-
+  // Ejecución del Script
   useEffect(() => {
     let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
 
-    if (!pageId || !page?.isLoaded || !isConnected) return;
+    if (pageId !== lastPageId) return;
 
+    if (!pageId || !page?.isLoaded || !isConnected || !engine) return;
+    if (page.id !== pageId) return;
+
+    // Caso: Página sin script
     if (!page.jsScript || page.jsScript.trim() === "") {
-      setComponentStruct(null);
-      setIsRunningScript(false);
-      return;
+      if (isMounted) {
+        setComponentStruct(null);
+        // DELAY AGREGADO: Forzamos 200ms antes de quitar el loader
+        timeoutId = setTimeout(() => {
+          if (isMounted) setIsRunningScript(false);
+        }, 1500);
+      }
+      return () => clearTimeout(timeoutId);
     }
-    setIsRunningScript(true);
 
-    if (!engine) {
-      setIsRunningScript(false);
-      return;
-    }
+    setIsRunningScript(true);
 
     runScript(page.jsScript, page.sqlScript, engine)
       .then(({ result }) => {
@@ -77,23 +92,28 @@ export const usePageViewer = () => {
         }
       })
       .catch((err) => {
-        console.error("Error ejecutando script de página:", err);
+        console.error("Error ejecutando script:", err);
         if (isMounted) setComponentStruct(null);
       })
       .finally(() => {
-        if (isMounted) setIsRunningScript(false);
+        // DELAY AGREGADO: Forzamos 200ms al terminar el script
+        timeoutId = setTimeout(() => {
+          if (isMounted) setIsRunningScript(false);
+        }, 200);
       });
 
     return () => {
       isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [page, isConnected]);
+  }, [page, isConnected, engine, pageId, lastPageId]);
 
+  // --- Handlers ---
   const handleOnOpenEditor = useCallback(() => {
     if (page?.jsScript) setJsCode(page?.jsScript ?? "");
     if (page?.sqlScript) setSqlCode(page?.sqlScript ?? "");
     setIsEditing(true);
-  }, [setJsCode, setSqlCode, setJsCode, setSqlCode, setIsEditing, page]);
+  }, [setJsCode, setSqlCode, setIsEditing, page]);
 
   const handleConfigure = useCallback(() => {
     openModal("213123123_editor_modal");
@@ -105,22 +125,27 @@ export const usePageViewer = () => {
 
   const onSave = useCallback(() => {
     saveCode(jsCode, sqlCode);
-  }, [pageId, jsCode, sqlCode, saveCode]);
+  }, [jsCode, sqlCode, saveCode]);
 
-  const isLoading = !page || isRunningScript;
+  // --- LÓGICA DE CARGA ---
+  const isLoading =
+    pageId !== lastPageId || // Transición instantánea
+    !page ||
+    !page.isLoaded ||
+    page.id !== pageId ||
+    isRunningScript; // Se mantiene true durante los 200ms extra
 
   return {
     engine,
     componentStruct,
     page,
     isLoading,
-    isEditing: false,
-    setIsEditing: (value?: boolean) => {},
+    isEditing,
+    setIsEditing,
     loadingId,
     handleConfigure,
     handleOnCloseEditor,
     handleOnOpenEditor,
     onSave,
-    /*     isSaving, */
   };
 };
