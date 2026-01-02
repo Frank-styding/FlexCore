@@ -3,7 +3,7 @@ import { v4 as uuid } from "uuid";
 import { IComponent } from "../modules/types/component.type";
 import { IEngine } from "../modules";
 
-const RecursiveComponent = memo(
+export const RecursiveComponent = memo(
   ({
     componentMap,
     data,
@@ -37,7 +37,11 @@ const RecursiveComponent = memo(
     if (!TargetComponent) return null;
 
     return (
-      <TargetComponent {...safeData} context={context}>
+      <TargetComponent
+        {...safeData}
+        componentMap={componentMap}
+        context={context}
+      >
         {safeData.subComponents &&
           (Array.isArray(safeData.subComponents) ? (
             safeData.subComponents.map((item) => {

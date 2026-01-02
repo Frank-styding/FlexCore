@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { TrashIcon, Play, Edit } from "lucide-react";
-import { DashboardCardProps } from "../../../aux123/features/gallery/types/gallery.types";
+import { DashboardCardProps } from "../types/dashboard.types";
 
 export const DashboardCard = ({
   name,

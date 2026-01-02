@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { JSX, useEffect, useMemo, useState } from "react";
 import { v4 as uuid } from "uuid";
 import { ChevronRight } from "lucide-react";
 
@@ -18,7 +18,10 @@ import { useComponentRegistration } from "@/features/engine/hooks/useComponentRe
 import { useScriptError } from "@/features/engine/hooks/useConnectionError";
 import { IComponent, IContext } from "../../types/component.type";
 import { INavigationProps, INavigationRoute } from "./navigation.definition";
-import { DynamicComponent } from "@/features/engine/components/DynamicComponent";
+import {
+  DynamicComponent,
+  RecursiveComponent,
+} from "@/features/engine/components/DynamicComponent";
 
 // --- Helpers de Lógica de Rutas ---
 
@@ -78,7 +81,12 @@ export const DynamicNavigation = ({
   context,
   id,
   data,
-}: IComponent & INavigationProps & { context: IContext }) => {
+  componentMap,
+}: IComponent &
+  INavigationProps & {
+    context: IContext;
+    componentMap: Record<string, (...data: any) => JSX.Element>;
+  }) => {
   const execute = useScriptError();
   const routes = data?.routes || [];
 
@@ -211,16 +219,17 @@ export const DynamicNavigation = ({
         {activeNode.children.map((item) => {
           const componentData = { ...item, id: item.id || uuid() };
           return (
-            <DynamicComponent
+            <RecursiveComponent
               key={componentData.id}
               data={componentData}
+              componentMap={componentMap}
               context={context}
             />
           );
         })}
       </div>
     );
-  }, [activeNode, currentPath, context]);
+  }, [activeNode, currentPath, context, componentMap]);
 
   // --- Renderizado Final ---
   const showBreadcrumb = config.showBreadcrumb !== false;
