@@ -1,21 +1,13 @@
-"use client"; // 👈 Importante para que funcionen los eventos onClick
-
-import Link from "next/link";
-import { useRouter } from "next/navigation"; // Hook de navegación de Next.js
-import { Button } from "@/components/ui/button";
-import { MoveLeft, Home, FileQuestion } from "lucide-react";
+"use client";
+import { FileQuestion } from "lucide-react";
 
 export default function NotFound() {
-  const router = useRouter();
-
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center bg-background px-4 text-center">
-      {/* Icono Decorativo */}
       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted shadow-sm animate-in zoom-in duration-300">
         <FileQuestion className="h-10 w-10 text-primary" />
       </div>
 
-      {/* Texto Principal */}
       <h1 className="mt-6 text-5xl font-extrabold tracking-tight text-foreground sm:text-7xl">
         404
       </h1>

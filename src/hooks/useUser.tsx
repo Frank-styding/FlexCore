@@ -1,72 +1,54 @@
 "use client";
 
-import { useEffect, useState, createContext, useContext } from "react";
-import { User } from "@supabase/supabase-js";
+import { create } from "zustand";
+import { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { systemSupabase } from "@/lib/supabase/client";
+import { useShallow } from "zustand/react/shallow";
 
-// Definimos qué información tendrá nuestro contexto
-interface UserContextType {
+interface UserState {
   user: User | null;
+  session: Session | null; // En prod es útil tener el token
   isLoading: boolean;
+
+  // Acciones internas
+  setSession: (session: Session | null) => void;
+  setLoading: (isLoading: boolean) => void;
   signOut: () => Promise<void>;
 }
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+const useStore = create<UserState>((set) => ({
+  user: null,
+  session: null,
+  isLoading: true,
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  setSession: (session) =>
+    set({
+      session,
+      user: session?.user ?? null,
+      isLoading: false,
+    }),
 
-  useEffect(() => {
-    // 1. Verificar sesión inicial
-    const checkUser = async () => {
-      try {
-        const {
-          data: { session },
-        } = await systemSupabase.auth.getSession();
-        setUser(session?.user ?? null);
-      } catch (error) {
-        console.error("Error cargando usuario:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  setLoading: (isLoading) => set({ isLoading }),
 
-    checkUser();
-
-    // 2. Escuchar cambios en tiempo real (Login, Logout, Auto-refresh)
-    const {
-      data: { subscription },
-    } = systemSupabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const signOut = async () => {
+  signOut: async () => {
+    // El listener detectará el evento SIGNED_OUT,
+    // pero forzamos el estado local por UX inmediata
+    set({ user: null, session: null, isLoading: false });
     await systemSupabase.auth.signOut();
-    setUser(null);
-    // Opcional: Redirigir o limpiar estado aquí
-  };
+  },
+}));
 
-  const value = {
-    user,
-    isLoading,
-    signOut,
-  };
+// --- Hooks Selectores Optimizados ---
+export const useUser = () => useStore((state) => state.user);
+export const useSession = () => useStore((state) => state.session);
+export const useAuthLoading = () => useStore((state) => state.isLoading);
+export const useSignOut = () => useStore((state) => state.signOut);
 
-  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
-}
-
-// Este es el hook que usarás en tus componentes
-export const useUser = () => {
-  const context = useContext(UserContext);
-  if (context === undefined) {
-    throw new Error("useUser debe ser usado dentro de un UserProvider");
-  }
-  return context;
-};
+// Exportamos las acciones para usarlas en el Provider
+export const useAuthActions = () =>
+  useStore(
+    useShallow((state) => ({
+      setSession: state.setSession,
+      setLoading: state.setLoading,
+    }))
+  );

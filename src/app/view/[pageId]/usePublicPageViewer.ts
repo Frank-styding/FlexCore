@@ -1,33 +1,35 @@
 // hooks/usePublicPageViewer.ts
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { useAppDispatch } from "@/lib/redux/hooks";
+import { Component } from "@/features/engine/lib/Builders/Component";
+/* import { useAppDispatch } from "@/lib/redux/hooks";
 import { fetchPageWithConfig } from "@/lib/redux/features/pageSlice";
 import { runScript } from "@/lib/runScript/runScript";
 import { Component } from "@/lib/ComponentBuilders/Component";
 import { useScriptActions } from "@/hooks/useScriptActions";
-import { useScriptConnectionActions } from "@/hooks/useScriptConnectionActions";
+import { useScriptConnectionActions } from "@/hooks/useScriptConnectionActions"; */
 
 export const usePublicPageViewer = () => {
   const params = useParams();
-  const dispatch = useAppDispatch();
+  /*   const dispatch = useAppDispatch(); */
   const pageId = params.pageId as string;
 
-  const { ConectionConfig } = useScriptConnectionActions();
-  const scriptContext = useScriptActions();
-  const scriptContextRef = useRef(scriptContext);
+  /*   const { ConectionConfig } = useScriptConnectionActions();
+  const scriptContext = useScriptActions(); */
+  /*   const scriptContextRef = useRef(scriptContext); */
 
   const [componentStruct, setComponentStruct] = useState<Component | null>(
     null
   );
+
   const [isLoading, setIsLoading] = useState(true);
   const [isAccessDenied, setIsAccessDenied] = useState(false);
 
-  useEffect(() => {
+  /*   useEffect(() => {
     scriptContextRef.current = scriptContext;
-  }, [scriptContext]);
+  }, [scriptContext]); */
 
-  useEffect(() => {
+  /*  useEffect(() => {
     let isMounted = true;
 
     const loadPublicPage = async () => {
@@ -90,7 +92,7 @@ export const usePublicPageViewer = () => {
       isMounted = false;
     };
     // IMPORTANTE: Agregamos las dependencias correctas para que recargue si cambia el ID
-  }, []);
+  }, []); */
 
   return {
     componentStruct,

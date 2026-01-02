@@ -1,22 +1,22 @@
 "use client";
 
-import { ComponentEditorModal } from "@/components/custom/Modals/CreateComponentModal";
-import { DynamicComponent } from "@/components/DynamicComponents/DynamicComponent";
 import { Loader2, Settings } from "lucide-react";
-import { usePageViewer } from "./usePageViewer";
 import { Button } from "@/components/ui/button";
+import { usePageViewer } from "@/features/page/hooks/usePageViewer";
+import { DynamicComponent } from "@/features/engine";
+import { ComponentEditorModal } from "@/features/editor/components/modals/CreateComponentModal";
 
 export default function Page() {
   const {
+    engine,
     componentStruct,
-    activePage,
+    page,
     handleConfigure,
     handleOnCloseEditor,
     isLoading,
     isEditing,
-    handleOnOpenEditor, // Asumo que lo usas en el modal si es necesario
+    handleOnOpenEditor,
     onSave,
-    isSaving,
   } = usePageViewer();
 
   return (
@@ -33,12 +33,8 @@ export default function Page() {
         {!isEditing && !isLoading && (
           <>
             {componentStruct ? (
-              <DynamicComponent
-                data={componentStruct}
-                context={componentStruct.context}
-              />
+              <DynamicComponent data={componentStruct} engine={engine} />
             ) : (
-              /* Estado Vacío */
               <div className="w-full min-h-full flex justify-center items-center">
                 <Button
                   onClick={handleConfigure}
@@ -48,7 +44,7 @@ export default function Page() {
                   <Settings className="size-8 mb-2" />
                   Configurar Página
                   <span className="text-xs text-muted-foreground font-normal">
-                    {activePage?.name || "Sin título"}
+                    {page?.name || "Sin título"}
                   </span>
                 </Button>
               </div>
@@ -61,7 +57,6 @@ export default function Page() {
         onClose={handleOnCloseEditor}
         onOpen={handleOnOpenEditor}
         onSave={onSave}
-        isSaving={isSaving}
       />
     </>
   );
