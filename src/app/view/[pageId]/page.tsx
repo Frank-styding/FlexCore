@@ -5,7 +5,8 @@ import { usePublicPageViewer } from "./usePublicPageViewer";
 import { DynamicComponent } from "@/features/engine/components/DynamicComponent";
 
 export default function PublicPageView() {
-  const { componentStruct, isLoading, isAccessDenied } = usePublicPageViewer();
+  const { componentStruct, isLoading, isAccessDenied, engine } =
+    usePublicPageViewer();
 
   if (isAccessDenied) {
     notFound();
@@ -23,10 +24,7 @@ export default function PublicPageView() {
     <div className="w-full h-screen bg-background flex flex-col overflow-hidden">
       {componentStruct ? (
         <div className="w-full flex-1 relative overflow-auto">
-          <DynamicComponent
-            data={componentStruct}
-            context={componentStruct.context}
-          />
+          <DynamicComponent data={componentStruct} engine={engine} />
         </div>
       ) : (
         <div className="flex h-full items-center justify-center text-muted-foreground">

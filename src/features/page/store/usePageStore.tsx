@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { systemSupabase } from "@/lib/supabase/client";
 import { Page } from "../types/page.types";
 import { useParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { IconName } from "@/components/ui/dynamic-icon";
 
 interface PageState {
@@ -20,6 +20,7 @@ interface PageState {
     userId?: string;
   }) => Promise<void>;
   deletePageRemote: (id: string) => Promise<void>;
+  fetchPublicPage: (pageId: string) => Promise<any>;
 }
 
 const DatabaseToStore = (item) => {
@@ -141,6 +142,37 @@ export const useStore = create<PageState>((set, get) => ({
       return { ...state, pages };
     });
   },
+  fetchPublicPage: async (pageId) => {
+    set({ status: "loading" });
+    // 2. Llamada RPC (Lógica que tenías en el Thunk)
+    const { data, error } = await systemSupabase
+      .rpc("get_public_page_details", { p_page_id: pageId })
+      .maybeSingle();
+
+    if (error) {
+      set({ status: "failed" });
+      throw error;
+    }
+
+    // 3. Si no hay data (es privada o no existe), retornamos null
+    if (!data) {
+      set({ status: "succeeded" }); // O 'idle', según prefieras manejar el "Not Found"
+      return null;
+    }
+
+    // 4. Formatear y guardar en el Store
+    /* const page = DatabaseToStore(data); */
+
+    set((state) => ({
+      /*       pages: {
+        ...state.pages,
+        [page.id]: { ...page, isLoaded: true },
+      }, */
+      status: "succeeded",
+    }));
+
+    return data;
+  },
 }));
 
 export const usePageStore = (id?: string) => {
@@ -155,6 +187,7 @@ export const usePageStore = (id?: string) => {
   const updatePageSettingsAction = useStore((s) => s.updatePageSettings);
   const addPageAction = useStore((s) => s.addPageRemote);
   const deletePageAction = useStore((s) => s.deletePageRemote);
+  const fetchPublicPage = useStore((s) => s.fetchPublicPage);
 
   const pages = useMemo(() => Object.values(pagesMap), [pagesMap]);
   const currentPage = useMemo(
@@ -203,5 +236,6 @@ export const usePageStore = (id?: string) => {
     },
     addPage: addPageAction,
     deletePage: deletePageAction,
+    fetchPublicPage,
   };
 };
