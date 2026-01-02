@@ -72,7 +72,7 @@ RecursiveComponent.displayName = "RecursiveComponent";
 export const DynamicComponent = memo(
   ({ engine, data }: { engine?: IEngine | null; data?: IComponent }) => {
     if (!engine) return null;
-    const { context } = engine.globalContext.context;
+    const context = engine.globalContext.context;
     const componentMap = engine.ComponentMap;
     return (
       <RecursiveComponent
