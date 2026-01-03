@@ -45,7 +45,7 @@ export default function Page() {
           >
             {componentStruct ? (
               <DynamicComponent data={componentStruct} engine={engine} />
-            ) : (
+            ) : !isLoading ? ( // <--- CAMBIO AQUÍ: Solo mostrar si NO está cargando
               // Estado vacío / Configuración
               <div className="w-full h-full min-h-[50vh] flex justify-center items-center">
                 <Button
@@ -60,7 +60,7 @@ export default function Page() {
                   </span>
                 </Button>
               </div>
-            )}
+            ) : null}
           </div>
         )}
       </div>
