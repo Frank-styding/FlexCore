@@ -39,13 +39,11 @@ export const useCodeDefinitions = ({
     if (sqlCode) {
       const sqlBuilder = new TypeBuilder(); // Instancia separada o encadenada según tu clase
       sqlBuilder.addSqlQueries(sqlCode);
-
       defs.push({
         path: "file:///sql-generated.d.ts",
         content: sqlBuilder.build(),
       });
     }
-
     // 3. Retorno final con todo acumulado
     return defs;
   }, [sqlCode, engine]);

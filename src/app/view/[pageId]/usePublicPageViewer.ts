@@ -16,7 +16,7 @@ export const usePublicPageViewer = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isAccessDenied, setIsAccessDenied] = useState(false);
-  const { createEngine, runScript, connect } = useEngine();
+  const { createEngine, runScript, connect, isConnected } = useEngine();
   const [engine, setEngine] = useState<IEngine | null>(null);
   const { fetchPublicPage } = usePageStore(pageId);
 
@@ -31,7 +31,7 @@ export const usePublicPageViewer = () => {
       setIsAccessDenied(false);
       setComponentStruct(null);
 
-      if (!pageId) return;
+      if (!pageId || !engine) return;
 
       try {
         setIsLoading(true);
@@ -48,15 +48,16 @@ export const usePublicPageViewer = () => {
         }
 
         const { js_script, sql_script, dashboard_config } = data;
-
+        let connected;
         // 2. Conectar a la Base de Datos del Cliente
         if (dashboard_config && dashboard_config.type) {
-          // Pasamos false para no intentar guardar en Redux del Dashboard inexistente
-          await connect(dashboard_config, false);
+          connected = await engine?.globalContext.Connect(
+            dashboard_config,
+            false
+          );
         }
 
-        // 3. Ejecutar el Script
-        if (js_script && engine) {
+        if (js_script && engine && connected) {
           const { result } = await runScript(
             js_script,
             sql_script || "",

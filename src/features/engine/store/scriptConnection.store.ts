@@ -14,8 +14,8 @@ interface ConnectionState {
   config: ConnectionConfig | null;
   error: string | null;
   setIsConnected: (value: boolean) => void;
-  activeAdapter: DatabaseAdapter | null;
-  connect: (config: ConnectionConfig) => Promise<void>;
+  /*   activeAdapter: DatabaseAdapter | null; */
+  connect: (config: ConnectionConfig) => Promise<DatabaseAdapter | undefined>;
   disconnect: () => Promise<void>;
   setConfig: (config: ConnectionConfig) => void;
 }
@@ -31,19 +31,24 @@ const createAdapter = (type: string): DatabaseAdapter => {
   }
 };
 
+export let adapter: DatabaseAdapter | null;
+
 export const useScriptConnectionStore = create<ConnectionState>((set, get) => ({
   isConnected: false,
   isConnecting: false,
   error: null,
-  activeAdapter: null,
+  /*   activeAdapter: null, */
   config: null,
   setConfig: (config) => set({ config }),
   disconnect: async () => {
-    const { activeAdapter } = get();
+    if (!adapter) return;
+    await adapter.disconnect();
+    set({ isConnected: false });
+    /*     const { activeAdapter } = get();
     if (activeAdapter) {
       await activeAdapter.disconnect();
     }
-    set({ isConnected: false, activeAdapter: null });
+    set({ isConnected: false, activeAdapter: null }); */
   },
   setIsConnected: (value) => {
     set({ isConnected: value });
@@ -53,24 +58,26 @@ export const useScriptConnectionStore = create<ConnectionState>((set, get) => ({
 
     try {
       await get().disconnect();
-      const adapter = createAdapter(config.type);
+      adapter = createAdapter(config.type);
       await adapter.connect(config);
       set({
         isConnected: adapter.isConnected(),
         isConnecting: false,
-        activeAdapter: adapter,
+        /*         activeAdapter: adapter, */
         config: config,
         error: null,
       });
+      return adapter;
     } catch (err: any) {
       const errorMessage = err.message || "Error desconocido al conectar";
       set({
         isConnected: false,
         isConnecting: false,
         error: errorMessage,
-        activeAdapter: null,
+        /*         activeAdapter: null, */
       });
       throw err;
+      return undefined;
     }
   },
 }));

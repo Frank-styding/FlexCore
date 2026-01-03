@@ -21,9 +21,6 @@ export class SupabaseAdapter implements DatabaseAdapter {
           autoRefreshToken: false,
         },
       });
-
-      // 2. "Ping" de validación: Intentamos una consulta simple para verificar credenciales
-      // Nota: Esto asume que ya creaste la función RPC 'exec_sql' en tu base de datos.
       const { error } = await this.client.rpc("exec_sql", {
         sql_query: "SELECT 1",
       });

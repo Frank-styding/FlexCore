@@ -14,17 +14,17 @@ export const ConnectFunc = () => {
         setIsConnected(false);
         await disconnect();
       }
-      await connect(config);
+      const adapter = await connect(config);
       if (shouldSave) {
         setConfig(config);
       }
       setIsConnected(true);
-      if (activeAdapter) {
-        addExecutionLogs([
-          { message: `System: Connected to ${activeAdapter.name}` },
-        ]);
+
+      if (adapter) {
+        addExecutionLogs([{ message: `System: Connected to ${adapter.name}` }]);
+        return true;
       }
-      return true;
+      return false;
     } catch (error: any) {
       if (activeAdapter) {
         addExecutionLogs([

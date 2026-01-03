@@ -110,8 +110,8 @@ export const usePageViewer = () => {
 
   // --- Handlers ---
   const handleOnOpenEditor = useCallback(() => {
-    if (page?.jsScript) setJsCode(page?.jsScript ?? "");
-    if (page?.sqlScript) setSqlCode(page?.sqlScript ?? "");
+    setJsCode(page?.jsScript ?? "");
+    setSqlCode(page?.sqlScript ?? "");
     setIsEditing(true);
   }, [setJsCode, setSqlCode, setIsEditing, page]);
 

@@ -1,14 +1,14 @@
 import { toast } from "sonner";
 import { processSqlTemplate } from "../../../lib/runScript/processSqlTemplate";
-import { useScriptConnectionStore } from "@/features/engine/store/scriptConnection.store";
+import { adapter } from "@/features/engine/store/scriptConnection.store";
 import { useEditorStore } from "@/features/engine/store/editor.store";
 
 export const ExecQuery = () => {
-  const { activeAdapter } = useScriptConnectionStore.getState();
+  /* const { activeAdapter } = useScriptConnectionStore.getState(); */
   const { addExecutionLogs } = useEditorStore.getState();
   return async (query: string, context?: Record<string, any>) => {
     if (!query) return [];
-    if (!activeAdapter || !activeAdapter.isConnected()) {
+    if (!adapter || !adapter.isConnected()) {
       const errorMsg = "No hay una conexión activa. Verifica la configuración.";
       toast.error("Error de Ejecución", {
         description: errorMsg,
@@ -18,7 +18,7 @@ export const ExecQuery = () => {
     }
     const processedQuery = context ? processSqlTemplate(query, context) : query;
     const start = performance.now();
-    const result = await activeAdapter.execute(processedQuery);
+    const result = await adapter.execute(processedQuery);
     const end = performance.now();
     addExecutionLogs([
       {

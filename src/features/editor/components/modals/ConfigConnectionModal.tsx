@@ -3,12 +3,18 @@ import { useDashboardActions } from "@/features/dashboard/store/useDashboard";
 import { useEditor, useEngine } from "@/features/engine";
 import { useIsModalOpen } from "@/hooks/useModal";
 import { useEffect, useState } from "react";
-import { ScriptEditor } from "../editor/ScriptEditor";
 import { IEngine } from "@/features/engine/modules";
 import { useCodeDefinitions } from "../../hooks/useCodeDefinitions";
+import dynamic from "next/dynamic";
+const ScriptEditor = dynamic(
+  () => import("../editor/ScriptEditor").then((mod) => mod.ScriptEditor),
+  {
+    ssr: false,
+    loading: () => <p>Cargando editor...</p>,
+  }
+);
 
 type ConfigConnectionModalProps = ModalProps & {};
-
 export const ConfigConnectionModal = (props: ConfigConnectionModalProps) => {
   const { jsCode, setJsCode, clearConsole, logs } = useEditor();
   const { setConfigScript, dashboard } = useDashboardActions();

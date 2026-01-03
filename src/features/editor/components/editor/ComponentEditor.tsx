@@ -7,8 +7,15 @@ import { Loader2, Save } from "lucide-react";
 import { DynamicComponent, useEditor, useEngine } from "@/features/engine";
 import { Tap } from "./Tap";
 import { TabContainer } from "./TabContainer";
-import { ScriptEditor } from "./ScriptEditor";
 import { IEngine } from "@/features/engine/modules";
+import dynamic from "next/dynamic";
+const ScriptEditor = dynamic(
+  () => import("../editor/ScriptEditor").then((mod) => mod.ScriptEditor),
+  {
+    ssr: false,
+    loading: () => <p>Cargando editor...</p>,
+  }
+);
 
 interface ScriptEditorProps {
   initialSql?: string;
