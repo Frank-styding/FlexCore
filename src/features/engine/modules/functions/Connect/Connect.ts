@@ -1,8 +1,11 @@
 import { useEditorStore } from "@/features/engine/store/editor.store";
-import { useScriptConnectionStore } from "@/features/engine/store/scriptConnection.store";
+import {
+  useScriptConnectionStore,
+  adapter,
+} from "@/features/engine/store/scriptConnection.store";
 
 export const ConnectFunc = () => {
-  const { activeAdapter, setIsConnected, disconnect, setConfig, connect } =
+  const { setIsConnected, disconnect, setConfig, connect } =
     useScriptConnectionStore.getState();
   const { addExecutionLogs } = useEditorStore.getState();
   return async (
@@ -10,11 +13,11 @@ export const ConnectFunc = () => {
     shouldSave: boolean = true
   ) => {
     try {
-      if (activeAdapter) {
+      if (adapter) {
         setIsConnected(false);
         await disconnect();
       }
-      const adapter = await connect(config);
+      await connect(config);
       if (shouldSave) {
         setConfig(config);
       }
@@ -26,10 +29,8 @@ export const ConnectFunc = () => {
       }
       return false;
     } catch (error: any) {
-      if (activeAdapter) {
-        addExecutionLogs([
-          { message: `System: Connected to ${activeAdapter.name}` },
-        ]);
+      if (adapter) {
+        addExecutionLogs([{ message: `System: Connected to ${adapter.name}` }]);
       }
       throw error;
     }
